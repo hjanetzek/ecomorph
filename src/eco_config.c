@@ -640,7 +640,7 @@ _basic_apply_data(E_Config_Dialog *cfd, E_Config_Dialog_Data *cfdata)
 		  e_border_hide(bd, 1);
 
 		ecore_x_window_move(bd->win, bd->x, bd->y);
-		
+
 		/* if (bd->client.netwm.state.hidden && !bd->client.netwm.state.shaded)
 		 *   {
 		 *      bd->visible = 1;
@@ -648,13 +648,17 @@ _basic_apply_data(E_Config_Dialog *cfd, E_Config_Dialog_Data *cfdata)
 		 *      e_border_iconify(bd);
 		 *   } */
 	     }
+
+	   eco_actions_free();
+	   eco_event_shutdown();
+	   eco_border_shutdown();
+
+	   e_config->desk_flip_animate_mode = 0;
 	}
-      else
-	{
-	  e_util_env_set("E_ECOMORPH", evil ? "1" : "0");
-	  a = e_action_find("restart");
-	  if ((a) && (a->func.go)) a->func.go(NULL, NULL);
-	}
+
+      e_util_env_set("E_ECOMORPH", evil ? "1" : "0");
+      a = e_action_find("restart");
+      if ((a) && (a->func.go)) a->func.go(NULL, NULL);
    }
 
    return 1;

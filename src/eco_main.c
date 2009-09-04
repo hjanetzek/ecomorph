@@ -102,16 +102,28 @@ e_modapi_init(E_Module *m)
       ECORE_X_WINDOW_TYPE_DESKTOP);
 
    /* if (after_restart) */
+   
    ecore_timer_add(1.0, _e_main_cb_after_restart, NULL);
 
-   eco_actions_create();
-   eco_event_init();
-   eco_border_init();
+   if (!evil)
+     {
+       char *bla = getenv("E_ECOMORPH");
+       evil = atoi(bla);
+     }
+   
+   if (evil)
+     {
+       e_util_env_set("E_ECOMORPH", "1");
+       eco_actions_create();
+       eco_event_init();
+       eco_border_init();
+       e_config->desk_flip_animate_mode = -1;
+     }
    
    conf_module = m;
    e_module_delayed_set(m, 0);
 
-   e_config->desk_flip_animate_mode = -1;
+
    
    return m;
 }
@@ -130,14 +142,19 @@ e_modapi_shutdown(E_Module *m)
 	e_int_menus_menu_augmentation_del("config/1", maug);
 	maug = NULL;
      }
-   eco_actions_free();
-   eco_event_shutdown();
-   eco_border_shutdown();
 
-   if (restart)
-     ecore_x_client_message32_send
-       (e_manager_current_get()->root, ECOMORPH_ATOM_MANAGED,
-	SubstructureNotifyMask,  ECOMORPH_EVENT_RESTART, 0, 1, 0, 0);   
+   if (evil)
+     {
+       eco_actions_free();
+       eco_event_shutdown();
+       eco_border_shutdown();
+
+       if (restart)
+	 ecore_x_client_message32_send
+	   (e_manager_current_get()->root, ECOMORPH_ATOM_MANAGED,
+	    SubstructureNotifyMask,  ECOMORPH_EVENT_RESTART, 0, 1, 0, 0);   
+     }
+   
    conf_module = NULL;
    return 1;
 }
