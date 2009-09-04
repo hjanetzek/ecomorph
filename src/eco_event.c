@@ -140,7 +140,7 @@ eco_event_init(void)
    _eco_zone_desk_count_set
      (e_util_zone_current_get(e_manager_current_get()));
 
-   ecore_timer_add(2.0, _cb_after_restart, NULL);
+   ecore_timer_add(0.5, _cb_after_restart, NULL);
    
    eco_stopped = 0;
    
@@ -638,19 +638,6 @@ _eco_cb_border_remove(void *data, int ev_type, void *ev)
   if (bdd->damage_handler) ecore_event_handler_del(bdd->damage_handler);
   if (bdd->damage_timeout) ecore_timer_del(bdd->damage_timeout);
   free(bdd);
-
-  printf("border remove, %d %d\n", stopping, restart);
-  
-  if (stopping && !eco_stopped)
-    {
-      _eco_message_root_send(ECOMORPH_ATOM_MANAGED,
-			     ECOMORPH_EVENT_RESTART,
-			     0, 1, 0, 0);
-      eco_stopped = 1;
-    }
-  
-  /* HACK disable e's deskflip animation... */
-  /* e_config->desk_flip_animate_mode = -1; */
   
   return 1;
 }

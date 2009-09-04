@@ -132,14 +132,13 @@ e_modapi_shutdown(E_Module *m)
 	maug = NULL;
      }
 
-   if (active)
+   if (active && restart)
      {
        eco_actions_free();
        eco_event_shutdown();
        _eco_message_root_send(ECOMORPH_ATOM_MANAGED,
 			      ECOMORPH_EVENT_RESTART,
 			      0, 1, 0, 0);
-   
      }
    
    conf_module = NULL;
