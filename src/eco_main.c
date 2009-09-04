@@ -99,6 +99,8 @@ e_modapi_init(E_Module *m)
    
    if (evil)
      {
+       printf("it's going be evil!\n");
+       
        e_util_env_set("E_ECOMORPH", "1");
 
        eco_actions_create();
@@ -132,13 +134,36 @@ e_modapi_shutdown(E_Module *m)
 	maug = NULL;
      }
 
-   if (active && restart)
+   printf("shutdown: %d\n", active);
+   
+   if (active)
      {
+       Eina_List *l;
+       E_Border *bd;
+
        eco_actions_free();
        eco_event_shutdown();
-       _eco_message_root_send(ECOMORPH_ATOM_MANAGED,
-			      ECOMORPH_EVENT_RESTART,
-			      0, 1, 0, 0);
+
+       if (restart && evil)
+	 _eco_message_root_send(ECOMORPH_ATOM_MANAGED,
+				ECOMORPH_EVENT_RESTART,
+				0, 1, 0, 0);
+   
+       EINA_LIST_FOREACH(e_border_client_list(), l, bd)
+	 {
+	   bd->changed = 1;
+	   bd->changes.pos = 1;
+	   bd->fx.x = 0;
+	   bd->fx.y = 0;
+		
+	   /* if ((!bd->desk->visible) && (!bd->sticky))
+	    *   e_border_hide(bd, 1); */
+
+	   ecore_x_window_move(bd->win, bd->x, bd->y);
+	 }
+
+       e_config->desk_flip_animate_mode = 0;
+       e_config_save();
      }
    
    conf_module = NULL;

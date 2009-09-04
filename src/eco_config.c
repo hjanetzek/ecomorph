@@ -638,30 +638,30 @@ _basic_apply_data(E_Config_Dialog *cfd, E_Config_Dialog_Data *cfdata)
       evil = cfdata->ecomorph;
 
       if (!evil)
-	{
-	   Eina_List *l;
-	   E_Border *bd;
-   
-	   for (l = e_border_client_list(); l; l = l->next)
-	     {
-		bd = l->data;
-    
-		bd->changed = 1;
-		bd->changes.pos = 1;
-		bd->fx.x = 0;
-		bd->fx.y = 0;
-		
-		if ((!bd->desk->visible) && (!bd->sticky))
-		  e_border_hide(bd, 1);
-
-		ecore_x_window_move(bd->win, bd->x, bd->y);
-	     }
-
-	   eco_actions_free();
-	   eco_event_shutdown();
-
-	   e_config->desk_flip_animate_mode = 0;
-	}
+      	{
+      	   Eina_List *l;
+      	   E_Border *bd;
+      
+      	   EINA_LIST_FOREACH(e_border_client_list(), l, bd)
+      	     {
+      		bd = l->data;
+      
+      		bd->changed = 1;
+      		bd->changes.pos = 1;
+      		bd->fx.x = 0;
+      		bd->fx.y = 0;
+      		
+      		/* if ((!bd->desk->visible) && (!bd->sticky))
+      		 *   e_border_hide(bd, 1); */
+      
+      		ecore_x_window_move(bd->win, bd->x, bd->y);
+      	     }
+      
+      	   eco_actions_free();
+      	   eco_event_shutdown();
+      
+      	   e_config->desk_flip_animate_mode = 0;
+      	}
 
       e_util_env_set("E_ECOMORPH", evil ? "1" : "0");
       a = e_action_find("restart");
