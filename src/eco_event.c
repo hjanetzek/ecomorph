@@ -98,6 +98,7 @@ _eco_cb_client_message(void *data, int ev_type, void *ev)
 	D(("0x%x :_ecomorph_cb_client_message\n", e->win));
 	D(("ECORE_X_ATOM_NET_MOVEREISZE_WINDOW %d:%d %dx%d\n", 
 	   (int)e->data.l[1], (int)e->data.l[2], (int)e->data.l[3], (int)e->data.l[4]));
+
 	bd = e_border_find_by_window(e->win);
 	if (!bd) return 1;
 

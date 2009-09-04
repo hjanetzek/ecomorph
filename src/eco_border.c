@@ -35,7 +35,6 @@ static void _eco_border_cb_hook_ungrab(void *data, E_Border *bd);
 
 static int _eco_cb_border_remove(void *data, int ev_type, void *ev);
 static int _eco_cb_border_show(void *data, int ev_type, void *ev);
-static int _eco_cb_border_move_resize(void *data, int ev_type, void *ev);
 static int _eco_cb_border_desk_set(void *data, int ev_type, void *ev);
 static int _eco_cb_border_focus(void *data, int ev_type, void *ev);
 static int _eco_cb_desk_show(void *data, int ev_type, void *ev);
@@ -46,6 +45,12 @@ static Eina_List *eco_borders = NULL;
 static Ecore_Timer *border_wait_timer = NULL;
 static int border_moveresize_active = 0;
 
+static int _eco_border_changes_title = 0;
+static int _eco_border_changes_name = 0;
+static int _eco_border_changes_state = 0;
+static int _eco_border_changes_type = 0;
+static int _eco_border_update_state = 0;
+
 EAPI
 int eco_border_init(void)
 {
@@ -55,10 +60,6 @@ int eco_border_init(void)
    h = ecore_event_handler_add(E_EVENT_BORDER_REMOVE, _eco_cb_border_remove, NULL);
    if (h) eco_handlers = eina_list_append(eco_handlers, h);
    h = ecore_event_handler_add(E_EVENT_BORDER_SHOW, _eco_cb_border_show, NULL);
-   if (h) eco_handlers = eina_list_append(eco_handlers, h);
-   h = ecore_event_handler_add(E_EVENT_BORDER_MOVE, _eco_cb_border_move_resize, NULL);
-   if (h) eco_handlers = eina_list_append(eco_handlers, h);
-   h = ecore_event_handler_add(E_EVENT_BORDER_RESIZE, _eco_cb_border_move_resize, NULL);
    if (h) eco_handlers = eina_list_append(eco_handlers, h);
    h = ecore_event_handler_add(E_EVENT_BORDER_DESK_SET, _eco_cb_border_desk_set, NULL);
    if (h) eco_handlers = eina_list_append(eco_handlers, h);
@@ -95,6 +96,20 @@ int eco_border_init(void)
    if (hook) eco_border_hooks = eina_list_append(eco_border_hooks, hook);
 }
 
+static void
+_eco_message_send(Ecore_X_Window win, long l1, long l2, long l3, long l4, long l5)
+{
+  ecore_x_client_message32_send
+    (win, ECOMORPH_ATOM_MANAGED, SubstructureNotifyMask, l1, l2, l3, l4, l5);
+}
+
+static void
+_eco_message_root_send(long l1, long l2, long l3, long l4, long l5)
+{
+  ecore_x_client_message32_send
+    (e_manager_current_get()->root, ECOMORPH_ATOM_MANAGED, SubstructureNotifyMask, l1, l2, l3, l4, l5);
+}
+
 static int
 _eco_cb_border_focus(void *data, int ev_type, void *event)
 {
@@ -103,17 +118,11 @@ _eco_cb_border_focus(void *data, int ev_type, void *event)
 
    if (ev_type == E_EVENT_BORDER_FOCUS_IN)
      {
-	ecore_x_client_message32_send
-	  (bd->win, ECORE_X_ATOM_NET_ACTIVE_WINDOW,
-	   SubstructureNotifyMask,
-	   1, 0, 0, 0, 0);
+       _eco_message_send(bd->win, ECOMORPH_EVENT_FOCUS, 0, 1, 0, 0);
      }
    else if (ev_type == E_EVENT_BORDER_FOCUS_OUT)
      {
-	ecore_x_client_message32_send
-	  (bd->win, ECORE_X_ATOM_NET_ACTIVE_WINDOW,
-	   SubstructureNotifyMask,
-	   2, 0, 0, 0, 0);
+       _eco_message_send(bd->win, ECOMORPH_EVENT_FOCUS, 0, 0, 0, 0);
      }
 
    return 1;
@@ -142,10 +151,7 @@ _eco_border_cb_hook_grab(void *data, E_Border *bd)
      {
 	border_moveresize_active++;
 	
-	ecore_x_client_message32_send
-	  (bd->win, ECOMORPH_ATOM_MANAGED,
-	   SubstructureNotifyMask,
-	   ECOMORPH_EVENT_GRAB, 0, 1, 0, 0);
+	_eco_message_send(bd->win, ECOMORPH_EVENT_GRAB, 0, 1, 0, 0);
      }
 }
 
@@ -154,10 +160,7 @@ _eco_border_cb_hook_ungrab(void *data, E_Border *bd)
 {
    border_moveresize_active = 0;
 
-   ecore_x_client_message32_send
-     (bd->win, ECOMORPH_ATOM_MANAGED,
-      SubstructureNotifyMask,
-      ECOMORPH_EVENT_GRAB, 0, 0, 0, 0);
+   _eco_message_send(bd->win, ECOMORPH_EVENT_GRAB, 0, 0, 0, 0);
 }
 
 static void
@@ -188,8 +191,10 @@ eco_border_shutdown(void)
 
    EINA_LIST_FREE (eco_borders, bdd)
      {
-       if (bdd->damage) ecore_x_damage_free(bdd->damage);
-       if (bdd->damage_handler) ecore_event_handler_del(bdd->damage_handler);
+       if (bdd->damage)
+	 ecore_x_damage_free(bdd->damage);
+       if (bdd->damage_handler)
+	 ecore_event_handler_del(bdd->damage_handler);
        free(bdd);
      }
 }
@@ -203,26 +208,20 @@ _eco_cb_desk_show(void *data, int ev_type, void *event)
    int geom[2];
    int move_type = 0;
    E_Desk *desk;
+   E_Zone *zone;
    E_Border_List *bl;
    
    ev = event;
    desk = ev->desk;
+   zone = desk->zone;
    
    EINA_LIST_FOREACH(e_border_client_list(), l, bd)
      {
 	if ((!bd->desk->visible) && (!bd->sticky))
 	  e_container_shape_hide(bd->shape);
-	   
-	/* misuse of button_grab flag in e_actions..
-	 * means 'move window by' */
-	/* ((e_config->always_click_to_raise ||
-	 *   e_config->always_click_to_focus ||
-	 *   (e_config->focus_policy == E_FOCUS_CLICK)) ? 
-	 *  !bd->button_grabbed : bd->button_grabbed) || */
-	   
+	   	   
 	if (bd->moving) bd2 = bd;
      }
-
 
    if(bd2) printf ("move window 0x%x\n", (unsigned int) bd2->win);
    if(bd2) move_type = bd2->moving ? 1 : 2;
@@ -231,32 +230,38 @@ _eco_cb_desk_show(void *data, int ev_type, void *event)
    /* this message is automatically ignored when the viewport is
       already active. i.e. when expo changed the viewport and sent
       a message to change the desktop accordingly */
+
    ecore_x_client_message32_send
      (e_manager_current_get()->root, ECORE_X_ATOM_NET_DESKTOP_VIEWPORT,
       SubstructureNotifyMask, 0,
-      desk->x * desk->zone->w,
-      desk->y * desk->zone->h, 
+      desk->x * zone->w, desk->y * zone->h, 
       (bd2 ? bd2->win : 0), move_type);
 
    /* set property on root window so that ecomp get this information
     * after restarting  */
-   geom[0] = desk->x * desk->zone->w;
-   geom[1] = desk->y * desk->zone->h;
+   geom[0] = desk->x * zone->w;
+   geom[1] = desk->y * zone->h;
 
-   ecore_x_window_prop_card32_set(e_manager_current_get()->root,
-				  ECORE_X_ATOM_NET_DESKTOP_VIEWPORT,
-				  geom, 2);  
+   ecore_x_window_prop_card32_set
+     (e_manager_current_get()->root,
+      ECORE_X_ATOM_NET_DESKTOP_VIEWPORT, geom, 2);  
 
-   bl = e_container_border_list_first(desk->zone->container);
+   bl = e_container_border_list_first(zone->container);
    while ((bd = e_container_border_list_next(bl)))
      {
 	if (bd->moving)
 	  e_border_desk_set(bd, desk);
-	else if (!bd->sticky)
+	else if (!bd->sticky && bd->desk != desk)
 	  {
-	     bd->fx.x = (bd->desk->x - bd->zone->desk_x_current) * bd->zone->w;
-	     bd->fx.y = (bd->desk->y - bd->zone->desk_y_current) * bd->zone->h;
-	     ecore_x_window_move(bd->win, bd->fx.x + bd->x, bd->fx.y + bd->y); 
+	    bd->fx.x = zone->container->manager->w + zone->w;
+	    bd->fx.y = zone->container->manager->h + zone->h;
+	    ecore_x_window_move(bd->win, bd->fx.x + bd->x, bd->fx.y + bd->y); 
+	  }
+	else
+	  {
+	    bd->fx.x = 0;
+	    bd->fx.y = 0;
+	    ecore_x_window_move(bd->win, bd->fx.x + bd->x, bd->fx.y + bd->y); 
 	  }
      }
    e_container_border_list_free(bl);
@@ -271,70 +276,26 @@ _eco_cb_border_desk_set(void *data, int ev_type, void *event)
    E_Border *bd = ev->border;
    E_Zone *zone = bd->zone;
    
-   /* e_border_show(bd); */
-
-   bd->fx.x = (bd->desk->x - zone->desk_x_current) * zone->w; 
-   bd->fx.y = (bd->desk->y - zone->desk_y_current) * zone->h;
+   if (!bd->sticky && bd->desk != e_desk_current_get(zone))
+     {
+       bd->fx.x = zone->container->manager->w + zone->w;
+       bd->fx.y = zone->container->manager->h + zone->h;
+     }
+   else
+     {
+       bd->fx.x = 0;
+       bd->fx.y = 0;
+     }
 
    ecore_x_window_move(bd->win, bd->fx.x + bd->x, bd->fx.y + bd->y); 	
-	
-   ecore_x_client_message32_send
-     (bd->win, ECOMORPH_ATOM_MANAGED,SubstructureNotifyMask,
-      ECOMORPH_EVENT_DESK, 0, bd->desk->x, bd->desk->y, bd->moving);
 
+   _eco_message_send(bd->win, ECOMORPH_EVENT_DESK,
+			     0, bd->desk->x, bd->desk->y, bd->moving);
+   
    ecore_x_netwm_desktop_set(bd->win, bd->desk->x + (zone->desk_x_count * bd->desk->y));
 	
    if ((!bd->desk->visible) && (!bd->sticky))
      e_container_shape_hide(bd->shape);
-   
-   return 1;
-}
-
-static int
-_eco_border_move_resize(int ev_type, E_Border *bd)
-{
-   ecore_x_client_message32_send
-     (bd->win, ECOMORPH_ATOM_MANAGED,
-      SubstructureNotifyMask,
-      ev_type, bd->fx.x + bd->x, bd->fx.y + bd->y, bd->w, bd->h);
-
-   return 1;
-}
-
-static int
-_eco_border_wait_cb(void *data)
-{
-   E_Border *bd = data;
-   
-   _eco_border_move_resize(ECOMORPH_EVENT_MOVE_RESIZE, bd);
-   e_object_unref(E_OBJECT(bd));
-
-   border_wait_timer = NULL;
-   return 0;
-}
-
-static int
-_eco_cb_border_move_resize(void *data, int ev_type, void *event)
-{
-   if (ev_type == E_EVENT_BORDER_MOVE)
-     {
-	E_Event_Border_Move *ev = event;
-	_eco_border_move_resize(ECOMORPH_EVENT_MOVE, ev->border);
-	
-     }
-   else if (ev_type == E_EVENT_BORDER_RESIZE)
-     {
-	E_Event_Border_Resize *ev = event;
-	_eco_border_move_resize(ECOMORPH_EVENT_MOVE_RESIZE, ev->border);
-	if (/* (!border_wait_timer) && */
-	    ((ev->border->internal) ||
-	     (ev->border->shading) ||
-	     (ev->border->changes.shading)))
-	  {
-	     e_object_ref(E_OBJECT(ev->border));
-	     border_wait_timer = ecore_timer_add(0.05, _eco_border_wait_cb, ev->border);
-	  }
-     }
    
    return 1;
 }
@@ -352,16 +313,9 @@ _eco_borderdamage_wait_time_out(void *data)
    
    if(bdd->damage)
      {
-	_eco_border_move_resize(E_EVENT_BORDER_RESIZE, bd);
-	
-	ecore_x_client_message32_send
-	  (bd->win, ECOMORPH_ATOM_MANAGED,
-	   SubstructureNotifyMask,
-	   ECOMORPH_EVENT_MAPPED, 0,
-	   ECOMORPH_WINDOW_STATE_VISIBLE, 0, 0);
-
-	_eco_border_move_resize(E_EVENT_BORDER_RESIZE, bd);
-	
+       _eco_message_send(bd->win, ECOMORPH_EVENT_MAPPED,
+			 0, ECOMORPH_WINDOW_STATE_VISIBLE, 0, 0);
+       
 	ecore_x_damage_free(bdd->damage);
 	bdd->damage = 0;
 	bdd->damage_timeout = NULL;
@@ -397,30 +351,21 @@ _eco_bordercb_damage_notify(void *data, int ev_type, void *ev)
 
       /* XXX not sure if this triggers a bug in ecomp or
 	 if xul is just weird */
-      if (bd->client.icccm.transient_for &&
-      	  (bd->client.icccm.class) &&
-      	  (!bd->remember || !bd->remember->prop.w) &&
-      	  (!strcmp(bd->client.icccm.class, "Firefox")))
-      	{
-      	   _eco_border_move_resize(E_EVENT_BORDER_RESIZE, bd);
-      	   
-      	   if (bdd->damage_timeout)
-      	     ecore_timer_del(bdd->damage_timeout);
-      	   
-      	   bdd->damage_timeout = ecore_timer_add
-      	     (0.1, _eco_borderdamage_wait_time_out, bdd);
-      
-      	   return 0;
-      	}
-      
-      ecore_x_client_message32_send
-	(bd->win, ECOMORPH_ATOM_MANAGED,
-	 SubstructureNotifyMask,
-	 ECOMORPH_EVENT_MAPPED, 0,
-	 ECOMORPH_WINDOW_STATE_VISIBLE, 0, 0);
+      /* if (bd->client.icccm.transient_for &&
+       * 	  (bd->client.icccm.class) &&
+       * 	  (!bd->remember || !bd->remember->prop.w) &&
+       * 	  (!strcmp(bd->client.icccm.class, "Firefox")))
+       * 	{
+       * 	   if (bdd->damage_timeout)
+       * 	     ecore_timer_del(bdd->damage_timeout);
+       * 	   bdd->damage_timeout = ecore_timer_add
+       * 	     (0.1, _eco_borderdamage_wait_time_out, bdd);
+       * 	   return 0;
+       * 	} */
 
-      _eco_border_move_resize(E_EVENT_BORDER_RESIZE, bd);
-      
+      _eco_message_send(bd->win, ECOMORPH_EVENT_MAPPED,
+			0, ECOMORPH_WINDOW_STATE_VISIBLE, 0, 0); 
+
       ecore_x_damage_free(bdd->damage);
 	  
       bdd->damage = 0;
@@ -463,8 +408,8 @@ _eco_borderwait_damage(E_Border *bd)
 }
 
 
-/* XXX this is not called in the case that e is 'stopping' so cleanup
-   on shutdown. move border members to own struct */
+/* this is not called in the case that e is 'stopping' so cleanup
+   on shutdown. */
 static int
 _eco_cb_border_remove(void *data, int ev_type, void *ev)
 {
@@ -516,9 +461,10 @@ _eco_border_cb_hook_new_border(void *data, E_Border *bd)
    e_bindings_wheel_grab(E_BINDING_CONTEXT_BORDER, bd->win);
    e_focus_setup(bd);
    
-   bd->bg_ecore_evas = e_canvas_new(e_config->evas_engine_borders, bd->win,
-   				    0, 0, bd->w, bd->h, 1, 0,
-   				    &(bd->bg_win));
+   bd->bg_ecore_evas = e_canvas_new
+     (e_config->evas_engine_borders, bd->win,
+      0, 0, bd->w, bd->h, 1, 0, &(bd->bg_win));
+   
    e_canvas_add(bd->bg_ecore_evas);
    bd->event_win = ecore_x_window_input_new(bd->win, 0, 0, bd->w, bd->h);
    bd->bg_evas = ecore_evas_get(bd->bg_ecore_evas);
@@ -540,10 +486,17 @@ _eco_border_cb_hook_pre_new_border(void *data, E_Border *bd)
    if (bd->new_client)
      {
 	E_Zone *zone = bd->zone;
-	
-	/* the border was moved according to its viewport */
-	bd->fx.x = (bd->desk->x - zone->desk_x_current) * zone->w; 
-	bd->fx.y = (bd->desk->y - zone->desk_y_current) * zone->h;
+
+	if (!bd->sticky && bd->desk != e_desk_current_get(zone))
+	  {
+	    bd->fx.x = zone->container->manager->w + zone->w;
+	    bd->fx.y = zone->container->manager->h + zone->h;
+	  }
+	else
+	  {
+	    bd->fx.x = 0;
+	    bd->fx.y = 0;
+	  }
 	
 	bd->changes.pos = 1;
 	bd->changed = 1;
@@ -556,17 +509,17 @@ _eco_border_cb_hook_pre_new_border(void *data, E_Border *bd)
 	     e_border_iconify(bd);
 	  }
      }
-   if (bd->visible)
-     _eco_border_move_resize(ECOMORPH_EVENT_MOVE_RESIZE, bd);
 }
 
 static void
 _eco_border_cb_hook_post_new_border(void *data, E_Border *bd)
 {
+  E_Zone *zone = bd->zone;
+  
   if (bd->new_client && bd->client.icccm.request_pos)
     {
-      bd->x = MOD(bd->x, bd->zone->w);
-      bd->y = MOD(bd->y, bd->zone->h);
+      bd->x = MOD(bd->x, zone->w);
+      bd->y = MOD(bd->y, zone->h);
     }
 
   if (bd->new_client)
@@ -574,17 +527,10 @@ _eco_border_cb_hook_post_new_border(void *data, E_Border *bd)
        if (!bd->iconic)
 	 e_border_show(bd);
 
-       ecore_x_netwm_desktop_set(bd->win, bd->desk->x +
-				 (bd->desk->zone->desk_x_count * bd->desk->y));
-       _eco_border_move_resize(ECOMORPH_EVENT_MOVE_RESIZE, bd);
+       ecore_x_netwm_desktop_set
+	 (bd->win, bd->desk->x + (zone->desk_x_count * bd->desk->y));
     }
 }
-
-static int _eco_border_changes_title = 0;
-static int _eco_border_changes_name = 0;
-static int _eco_border_changes_state = 0;
-static int _eco_border_changes_type = 0;
-static int _eco_border_update_state = 0;
 
 static void
 _eco_border_cb_hook_pre_fetch(void *data, E_Border *bd)
@@ -610,6 +556,7 @@ _eco_border_cb_hook_post_fetch(void *data, E_Border *bd)
 	if(bd->client.icccm.title)
 	  ecore_x_netwm_name_set(bd->win, bd->client.icccm.title);
 	_eco_border_changes_title = 0;
+
      }
 
    if (_eco_border_changes_name)

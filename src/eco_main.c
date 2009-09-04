@@ -95,7 +95,6 @@ e_modapi_init(E_Module *m)
 
    ECOMORPH_ATOM_MANAGED = ecore_x_atom_get("__ECOMORPH_WINDOW_MANAGED");
    ECOMORPH_ATOM_PLUGIN  = ecore_x_atom_get("__ECOMORPH_PLUGIN");
-   ECOMORPH_ATOM_MOVE_RESIZE  = ecore_x_atom_get("__ECOMORPH_MOVE_RESIZE");
 
    ecore_x_netwm_window_type_set
      (e_container_current_get(e_manager_current_get())->bg_win,
@@ -105,7 +104,7 @@ e_modapi_init(E_Module *m)
    
    ecore_timer_add(1.0, _e_main_cb_after_restart, NULL);
 
-   if (!evil)
+   if (evil)
      {
        char *bla = getenv("E_ECOMORPH");
        evil = atoi(bla);
