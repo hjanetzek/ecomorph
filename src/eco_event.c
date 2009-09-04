@@ -164,8 +164,12 @@ eco_event_shutdown(void)
      {
        if (bdd->damage)
 	 ecore_x_damage_free(bdd->damage);
+
        if (bdd->damage_handler)
 	 ecore_event_handler_del(bdd->damage_handler);
+
+       e_object_unref(bdd->border);
+
        free(bdd);
      }
 

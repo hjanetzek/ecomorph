@@ -163,7 +163,6 @@ e_modapi_shutdown(E_Module *m)
 	 }
 
        e_config->desk_flip_animate_mode = 0;
-       e_config_save();
      }
    
    conf_module = NULL;
