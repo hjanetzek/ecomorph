@@ -11,8 +11,6 @@ Ecore_X_Atom ECOMORPH_ATOM_PLUGIN = 0;
 static E_Module *conf_module = NULL;
 static E_Int_Menu_Augmentation *maug = NULL;
 
-/*static char *eco_config_filename = NULL;
- * static Eet_File *eco_config_file = NULL; */
 Eet_Data_Descriptor *eco_edd_group, *eco_edd_option;
 /* Eet_Data_Descriptor_Class eddc_option;
  * Eet_Data_Descriptor_Class eddc_group; */
@@ -66,32 +64,33 @@ e_modapi_init(E_Module *m)
 
    maug = e_int_menus_menu_augmentation_add("config/1", _e_mod_menu_add, NULL, NULL, NULL);
     
-   eco_edd_group = eet_data_descriptor_new("group", sizeof(Eco_Group),
-   				       NULL, NULL, NULL, NULL,
-   				       (void  (*) (void *, int (*) (void *, const char *, void *, void *), void *))eina_hash_foreach,
-   				       (void *(*) (void *, const char *, void *))eet_eina_hash_add,
-   				       (void  (*) (void *))eina_hash_free);
+   eco_edd_group = eet_data_descriptor_new
+     ("group", sizeof(Eco_Group),
+      NULL, NULL, NULL, NULL,
+      (void  (*) (void *, int (*) (void *, const char *, void *, void *), void *))eina_hash_foreach,
+      (void *(*) (void *, const char *, void *))eet_eina_hash_add,
+      (void  (*) (void *))eina_hash_free);
    
-   eco_edd_option = eet_data_descriptor_new("option", sizeof(Eco_Option),
-   					(void *(*) (void *))eina_list_next,
-   					(void *(*) (void *, void *)) eina_list_append,
-   					(void *(*) (void *))eina_list_data_get,
-   					(void *(*) (void *))eina_list_free,
-   					NULL, NULL, NULL);
+   eco_edd_option = eet_data_descriptor_new
+     ("option", sizeof(Eco_Option),
+      (void *(*) (void *))eina_list_next,
+      (void *(*) (void *, void *)) eina_list_append,
+      (void *(*) (void *))eina_list_data_get,
+      (void *(*) (void *))eina_list_free,
+      NULL, NULL, NULL);
 
    /* EET_EINA_STREAM_DATA_DESCRIPTOR_CLASS_SET(&eddc_option, Eco_Option);
     * EET_EINA_STREAM_DATA_DESCRIPTOR_CLASS_SET(&eddc_group,  Eco_Group);
     * eco_edd_option = eet_data_descriptor_stream_new(&eddc_option);
     * eco_edd_group =  eet_data_descriptor_stream_new(&eddc_group); */
    
-   EET_DATA_DESCRIPTOR_ADD_BASIC(eco_edd_option, Eco_Option, "type",	 type,		  EET_T_INT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(eco_edd_option, Eco_Option, "int",	 intValue,	  EET_T_INT);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(eco_edd_option, Eco_Option, "type",	 type,	      EET_T_INT);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(eco_edd_option, Eco_Option, "int",	 intValue,    EET_T_INT);
    EET_DATA_DESCRIPTOR_ADD_BASIC(eco_edd_option, Eco_Option, "double",	 doubleValue, EET_T_DOUBLE);
    EET_DATA_DESCRIPTOR_ADD_BASIC(eco_edd_option, Eco_Option, "string",	 stringValue, EET_T_STRING);
-   EET_DATA_DESCRIPTOR_ADD_LIST (eco_edd_option, Eco_Option, "list",	 listValue,	  eco_edd_option);
+   EET_DATA_DESCRIPTOR_ADD_LIST (eco_edd_option, Eco_Option, "list",	 listValue,   eco_edd_option);
 
    EET_DATA_DESCRIPTOR_ADD_HASH (eco_edd_group,  Eco_Group,  "options", data, eco_edd_option);
-
 
    ECOMORPH_ATOM_MANAGED = ecore_x_atom_get("__ECOMORPH_WINDOW_MANAGED");
    ECOMORPH_ATOM_PLUGIN  = ecore_x_atom_get("__ECOMORPH_PLUGIN");
@@ -100,30 +99,27 @@ e_modapi_init(E_Module *m)
      (e_container_current_get(e_manager_current_get())->bg_win,
       ECORE_X_WINDOW_TYPE_DESKTOP);
 
-   /* if (after_restart) */
-   
    ecore_timer_add(1.0, _e_main_cb_after_restart, NULL);
 
-   if (evil)
+   char *bla = getenv("E_ECOMORPH");
+
+   if (evil || atoi(bla))
      {
-       char *bla = getenv("E_ECOMORPH");
        evil = atoi(bla);
      }
    
    if (evil)
      {
        e_util_env_set("E_ECOMORPH", "1");
+
        eco_actions_create();
        eco_event_init();
-       eco_border_init();
        e_config->desk_flip_animate_mode = -1;
      }
    
    conf_module = m;
    e_module_delayed_set(m, 0);
 
-
-   
    return m;
 }
 
@@ -146,7 +142,6 @@ e_modapi_shutdown(E_Module *m)
      {
        eco_actions_free();
        eco_event_shutdown();
-       eco_border_shutdown();
 
        if (restart)
 	 ecore_x_client_message32_send

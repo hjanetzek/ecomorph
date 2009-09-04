@@ -651,7 +651,6 @@ _basic_apply_data(E_Config_Dialog *cfd, E_Config_Dialog_Data *cfdata)
 
 	   eco_actions_free();
 	   eco_event_shutdown();
-	   eco_border_shutdown();
 
 	   e_config->desk_flip_animate_mode = 0;
 	}

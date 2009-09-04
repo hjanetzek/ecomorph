@@ -3,6 +3,9 @@
 #ifndef E_MOD_MAIN_H
 #define E_MOD_MAIN_H
 
+#define D(x) //do { printf(__FILE__ ":%d:\t", __LINE__); printf x;
+	     //fflush(stdout); } while(0)
+
 #define _(str) dgettext(PACKAGE, str)
 
 #define ECOMORPH_EVENT_MAPPED       0
@@ -16,10 +19,11 @@
 #define ECOMORPH_WINDOW_STATE_INVISIBLE 0
 #define ECOMORPH_WINDOW_STATE_VISIBLE 1
 
+#define ECO_PLUGIN_TERMINATE_NOTIFY 1
+
 #include "eco_config.h"
 #include "eco_actions.h"
 #include "eco_event.h"
-#include "eco_border.h"
 
 EAPI extern E_Module_Api e_modapi;
 
@@ -28,6 +32,5 @@ EAPI int   e_modapi_shutdown (E_Module *m);
 EAPI int   e_modapi_save     (E_Module *m);
 
 extern Ecore_X_Atom ECOMORPH_ATOM_MANAGED;
-extern Ecore_X_Atom ECOMORPH_ATOM_MOVE_RESIZE;
 extern Ecore_X_Atom ECOMORPH_ATOM_PLUGIN;
 #endif

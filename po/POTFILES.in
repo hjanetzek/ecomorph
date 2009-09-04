@@ -1,8 +1,6 @@
 src/e_mod_main.h
 src/eco_actions.c
 src/eco_actions.h
-src/eco_border.c
-src/eco_border.h
 src/eco_config.c
 src/eco_config.h
 src/eco_config_animation.c

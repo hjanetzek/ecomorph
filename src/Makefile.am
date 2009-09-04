@@ -15,8 +15,6 @@ module_la_SOURCES      = e_mod_main.h \
                          eco_actions.h \
                          eco_event.c \
                          eco_event.h \
-                         eco_border.c \
-                         eco_border.h \
                          eco_config_water.c \
                          eco_config_blur.c \
                          eco_config_mblur.c \
