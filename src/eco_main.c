@@ -31,22 +31,15 @@ eet_eina_hash_add(Eina_Hash *hash, const char *key, const void *data)
   eina_hash_add(hash, key, data);
   return hash;
 }
-static int
-_e_main_cb_after_restart(void *data)
-{ 
-   if(e_manager_current_get())
-     ecore_x_client_message32_send
-       (e_manager_current_get()->root,
-	ECOMORPH_ATOM_MANAGED, SubstructureNotifyMask,
-	ECOMORPH_EVENT_RESTART, 0, 0, 0, 0);
-   return 0;  
-}
+
+static int active = 0;
 
 EAPI void *
 e_modapi_init(E_Module *m)
 {
    char buf[PATH_MAX];
-
+   char *eco_mode = getenv("E_ECOMORPH");
+   
    /* Location of message catalogs for localization */
    snprintf(buf, sizeof(buf), "%s/locale", e_module_dir_get(m));
    bindtextdomain(PACKAGE, buf);
@@ -99,14 +92,10 @@ e_modapi_init(E_Module *m)
      (e_container_current_get(e_manager_current_get())->bg_win,
       ECORE_X_WINDOW_TYPE_DESKTOP);
 
-   ecore_timer_add(1.0, _e_main_cb_after_restart, NULL);
+   /* ecore_timer_add(1.0, _e_main_cb_after_restart, NULL); */
 
-   char *bla = getenv("E_ECOMORPH");
-
-   if (evil || atoi(bla))
-     {
-       evil = atoi(bla);
-     }
+   if (eco_mode && atoi(eco_mode))
+     evil = atoi(eco_mode);
    
    if (evil)
      {
@@ -115,6 +104,7 @@ e_modapi_init(E_Module *m)
        eco_actions_create();
        eco_event_init();
        e_config->desk_flip_animate_mode = -1;
+       active = 1;
      }
    
    conf_module = m;
@@ -122,7 +112,11 @@ e_modapi_init(E_Module *m)
 
    return m;
 }
-
+_eco_message_root_send(Ecore_X_Atom atom, long l1, long l2, long l3, long l4, long l5)
+{
+  ecore_x_client_message32_send
+    (e_manager_current_get()->root, atom, SubstructureNotifyMask, l1, l2, l3, l4, l5);
+}
 EAPI int
 e_modapi_shutdown(E_Module *m)
 {
@@ -138,15 +132,14 @@ e_modapi_shutdown(E_Module *m)
 	maug = NULL;
      }
 
-   if (evil)
+   if (active)
      {
        eco_actions_free();
        eco_event_shutdown();
-
-       if (restart)
-	 ecore_x_client_message32_send
-	   (e_manager_current_get()->root, ECOMORPH_ATOM_MANAGED,
-	    SubstructureNotifyMask,  ECOMORPH_EVENT_RESTART, 0, 1, 0, 0);   
+       _eco_message_root_send(ECOMORPH_ATOM_MANAGED,
+			      ECOMORPH_EVENT_RESTART,
+			      0, 1, 0, 0);
+   
      }
    
    conf_module = NULL;

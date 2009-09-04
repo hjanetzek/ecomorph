@@ -74,6 +74,17 @@ static int _eco_border_changes_state = 0;
 static int _eco_border_changes_type = 0;
 static int _eco_border_update_state = 0;
 
+static int eco_stopped = 0;
+
+static int
+_cb_after_restart(void *data)
+{
+  _eco_message_root_send
+    (ECOMORPH_ATOM_MANAGED, ECOMORPH_EVENT_RESTART, 0, 0, 0, 0);
+  return 0;
+}
+
+
 EAPI int
 eco_event_init(void)
 {
@@ -126,7 +137,12 @@ eco_event_init(void)
 
    _eco_window_icon_init();
 
-   _eco_zone_desk_count_set(e_util_zone_current_get(e_manager_current_get()));
+   _eco_zone_desk_count_set
+     (e_util_zone_current_get(e_manager_current_get()));
+
+   ecore_timer_add(2.0, _cb_after_restart, NULL);
+   
+   eco_stopped = 0;
    
    return 1;
 }
@@ -588,6 +604,7 @@ _eco_borderwait_damage(E_Border *bd)
       bdd = calloc(1, sizeof(Eco_Border_Data));
       bdd->border = bd;
       eco_borders = eina_list_append(eco_borders, bdd);
+      e_object_ref(E_OBJECT(bd));
     }
 
   if (bdd->damage) ecore_x_damage_free(bdd->damage);      
@@ -604,8 +621,6 @@ _eco_borderwait_damage(E_Border *bd)
   bdd->damage_rect.height = 0;   
 }
 
-/* this is not called in the case that e is 'stopping' so cleanup
-   on shutdown. */
 static int
 _eco_cb_border_remove(void *data, int ev_type, void *ev)
 {
@@ -616,14 +631,27 @@ _eco_cb_border_remove(void *data, int ev_type, void *ev)
   LIST_DATA_BY_MEMBER_FIND(eco_borders, Eco_Border_Data, border, bd, bdd);
   if (!bdd) return 1;
 
+  e_object_unref(E_OBJECT(bd));
+  
   eco_borders = eina_list_remove(eco_borders, bdd);
   if (bdd->damage) ecore_x_damage_free(bdd->damage);
   if (bdd->damage_handler) ecore_event_handler_del(bdd->damage_handler);
   if (bdd->damage_timeout) ecore_timer_del(bdd->damage_timeout);
   free(bdd);
 
+  printf("border remove, %d %d\n", stopping, restart);
+  
+  if (stopping && !eco_stopped)
+    {
+      _eco_message_root_send(ECOMORPH_ATOM_MANAGED,
+			     ECOMORPH_EVENT_RESTART,
+			     0, 1, 0, 0);
+      eco_stopped = 1;
+    }
+  
   /* HACK disable e's deskflip animation... */
-  e_config->desk_flip_animate_mode = -1;
+  /* e_config->desk_flip_animate_mode = -1; */
+  
   return 1;
 }
 
@@ -635,8 +663,6 @@ _eco_cb_border_show(void *data, int ev_type, void *ev)
 
   _eco_borderwait_damage(bd);
 }
-
-
 
 static void
 _eco_border_cb_hook_new_border(void *data, E_Border *bd)

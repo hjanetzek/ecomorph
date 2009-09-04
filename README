@@ -1,1 +1,7 @@
-Basic EFL/Enlightenment Module Skeleton
+1. install ecomp
+2. install ecomorph module
+3. run ecomorph.sh
+4. load ecomorph module
+5. activate ecomorph mode under 
+   -> settings -> ecomorph
+   click apply

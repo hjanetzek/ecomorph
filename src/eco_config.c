@@ -51,12 +51,30 @@ static char file_path[2048] = "";
 EAPI int
 eco_config_file_open()
 {
-  printf("load config\n");
+  /* FIXME configuration */
   
   if (!eco_config_file)
     {
       snprintf(file_path, 2048, "%s/%s", e_user_homedir_get(), ".ecomp/ecomp.eet");
-      eco_config_file = eet_open(file_path, EET_FILE_MODE_READ_WRITE);
+      if (!ecore_file_exists(file_path))
+	{
+	  char *file_src[] =
+	    {
+	      "/usr/local/share/ecomp/ecomp.eet",
+	      "/usr/share/ecomp/ecomp.eet",
+	      "/opt/e17/share/ecomp/ecomp.eet"
+	    };
+	  
+	  if (ecore_file_exists(file_src[0]))
+	    ecore_file_cp(file_src[0], file_path);
+	  else if (ecore_file_exists(file_src[1]))
+	      ecore_file_cp(file_src[1], file_path);
+	  else if (ecore_file_exists(file_src[2]))
+	    ecore_file_cp(file_src[2], file_path);
+	}
+      
+      if (ecore_file_exists(file_path))
+	eco_config_file = eet_open(file_path, EET_FILE_MODE_READ_WRITE);
     }
 
   printf("loaded %s %d\n", file_path, eco_config_file ? 1 : 0);
@@ -68,11 +86,8 @@ EAPI void
 eco_config_file_close()
 {
   if (eco_config_file)
-    {
-      printf("close eet file\n");
-      
-      eet_close(eco_config_file);
-    }
+    eet_close(eco_config_file);
+
   eco_config_file = NULL;
   
 }
@@ -640,13 +655,6 @@ _basic_apply_data(E_Config_Dialog *cfd, E_Config_Dialog_Data *cfdata)
 		  e_border_hide(bd, 1);
 
 		ecore_x_window_move(bd->win, bd->x, bd->y);
-
-		/* if (bd->client.netwm.state.hidden && !bd->client.netwm.state.shaded)
-		 *   {
-		 *      bd->visible = 1;
-		 *      bd->iconic = 0;
-		 *      e_border_iconify(bd);
-		 *   } */
 	     }
 
 	   eco_actions_free();
@@ -712,13 +720,6 @@ _basic_create_widgets(E_Config_Dialog *cfd, Evas *evas, E_Config_Dialog_Data *cf
    dialog_data->o_container = e_widget_add(evas);
    e_widget_size_min_set(dialog_data->o_container, 540, 600);
 
-   /* ob = e_widget_label_add(evas, _("Welcome !!"));
-    * dialog_data->o_content = ob;
-    * e_widget_sub_object_add(cfdata->o_container, ob);
-    * e_widget_resize_object_set(cfdata->o_container, ob);
-    * evas_object_show(ob);
-    * 
-    * eco_config_general(dialog_data); */
    e_widget_ilist_selected_set(list, 1);
    
    e_widget_list_object_append(o, cfdata->o_container, 1, 1, 0.0);

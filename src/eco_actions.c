@@ -1,57 +1,6 @@
 #include <X11/Xlib.h>
 #include "e_mod_main.h"
 
-
-static void _eco_cb_key_action(E_Object *obj, const char *params, Ecore_Event_Key *ev);
-static void _eco_cb_mouse_action(E_Object *obj, const char *params, Ecore_Event_Mouse_Button *ev);
-static void _eco_cb_mouse_wheel_action(E_Object *obj, const char *params, Ecore_Event_Mouse_Wheel *ev);
-static void _eco_cb_action(E_Object *obj, const char *params, int modifiers);
-
-static void _eco_modifiers_set(int mod);
-static int  _eco_cb_key_down(void *data, int type, void *event);
-static int  _eco_cb_key_up(void *data, int type, void *event);
-static int  _eco_cb_mouse_wheel(void *data, int type, void *event);
-static int  _eco_cb_mouse_move(void *data, int type, void *event);
-static int  _eco_cb_mouse_down(void *data, int type, void *event);
-static int  _eco_cb_mouse_up(void *data, int type, void *event);
-
-
-typedef struct _Eco_Action Eco_Action;
-struct _Eco_Action
-{
-  int toggle;
-  int plugin;
-  int action;
-  int option;
-  int option2;
-
-  int terminate_edge;
-  
-  int ignore_mouse_event;
-
-  double time_start;
-};
-
-static Eco_Action eco_action;
-static Eina_List *act_handlers = NULL;
-static Ecore_X_Window input_window = 0;
-static int hold_count = 0;
-static int hold_mod = 0;
-
-static void
-_eco_modifiers_set(int mod)
-{
-   if (!act_handlers) return;
-   hold_mod = mod;
-   hold_count = 0;
-   if (hold_mod & ECORE_EVENT_MODIFIER_SHIFT) hold_count++;
-   if (hold_mod & ECORE_EVENT_MODIFIER_CTRL) hold_count++;
-   if (hold_mod & ECORE_EVENT_MODIFIER_ALT) hold_count++;
-   if (hold_mod & ECORE_EVENT_MODIFIER_WIN) hold_count++;
-}
-
-
-
 #define ECO_PLUGIN_SCALE   0
 #define ECO_PLUGIN_SWITCH  1
 #define ECO_PLUGIN_EXPO    2
@@ -85,6 +34,54 @@ _eco_modifiers_set(int mod)
 #define ECO_ACT_OPT_CYCLE_UP    5
 #define ECO_ACT_OPT_CYCLE_DOWN  6
 
+typedef struct _Eco_Action Eco_Action;
+
+struct _Eco_Action
+{
+  int toggle;
+  int plugin;
+  int action;
+  int option;
+  int option2;
+
+  int terminate_edge;
+  
+  int ignore_mouse_event;
+
+  double time_start;
+};
+
+static void _eco_cb_key_action(E_Object *obj, const char *params, Ecore_Event_Key *ev);
+static void _eco_cb_mouse_action(E_Object *obj, const char *params, Ecore_Event_Mouse_Button *ev);
+static void _eco_cb_mouse_wheel_action(E_Object *obj, const char *params, Ecore_Event_Mouse_Wheel *ev);
+static void _eco_cb_action(E_Object *obj, const char *params, int modifiers);
+
+static void _eco_modifiers_set(int mod);
+static int  _eco_cb_key_down(void *data, int type, void *event);
+static int  _eco_cb_key_up(void *data, int type, void *event);
+static int  _eco_cb_mouse_wheel(void *data, int type, void *event);
+static int  _eco_cb_mouse_move(void *data, int type, void *event);
+static int  _eco_cb_mouse_down(void *data, int type, void *event);
+static int  _eco_cb_mouse_up(void *data, int type, void *event);
+
+static Eco_Action eco_action;
+static Eina_List *act_handlers = NULL;
+static Ecore_X_Window input_window = 0;
+static int hold_count = 0;
+static int hold_mod = 0;
+
+static void
+_eco_modifiers_set(int mod)
+{
+   if (!act_handlers) return;
+   hold_mod = mod;
+   hold_count = 0;
+   if (hold_mod & ECORE_EVENT_MODIFIER_SHIFT) hold_count++;
+   if (hold_mod & ECORE_EVENT_MODIFIER_CTRL) hold_count++;
+   if (hold_mod & ECORE_EVENT_MODIFIER_ALT) hold_count++;
+   if (hold_mod & ECORE_EVENT_MODIFIER_WIN) hold_count++;
+}
+
 static char *eco_plugin_table[9] =
 {
     "scale", "switch", "expo",
@@ -96,17 +93,16 @@ static char *eco_plugin_table[9] =
 static void
 _eco_plugin_message_send(void)
 {
-     ecore_x_client_message32_send(e_manager_current_get()->root,
-				   ECOMORPH_ATOM_PLUGIN,
-				   SubstructureRedirectMask | SubstructureNotifyMask,
-				   e_manager_current_get()->root, // better send
-								  // active window
-				   eco_action.plugin,
-				   eco_action.action,
-				   eco_action.option,
-				   eco_action.option2);
+     ecore_x_client_message32_send
+       (e_manager_current_get()->root,
+	ECOMORPH_ATOM_PLUGIN,
+	SubstructureNotifyMask,
+	e_manager_current_get()->root, // better send active window
+	eco_action.plugin,
+	eco_action.action,
+	eco_action.option,
+	eco_action.option2);
 }
-
 
 EAPI void
 eco_action_terminate(void) /* TODO add arg if message should be send
@@ -239,7 +235,6 @@ _eco_cb_key_down(void *data, int type, void *event)
    return 1;
 }
 
-
 static int
 _eco_cb_mouse_wheel(void *data, int type, void *event)
 {
@@ -257,13 +252,12 @@ _eco_cb_mouse_wheel(void *data, int type, void *event)
    return 1;
 }
 
-
-static int _edge_enable_timer_cb(void *data)
+static int
+_edge_enable_timer_cb(void *data)
 {
    e_zone_flip_win_restore();
    return 0;
 }
-
 
 static int
 _eco_cb_mouse_move(void *data, int type, void *event)
@@ -333,7 +327,6 @@ _eco_cb_mouse_move(void *data, int type, void *event)
    return 1;
 }
 
-
 static int
 _eco_cb_mouse_down(void *data, int type, void *event)
 {
@@ -359,7 +352,6 @@ _eco_cb_mouse_down(void *data, int type, void *event)
    return 1;
 }
 
-
 static int
 _eco_cb_mouse_up(void *data, int type, void *event)
 {
@@ -379,7 +371,6 @@ _eco_cb_mouse_up(void *data, int type, void *event)
    
    return 1;
 }
-
 
 static int
 _eco_cb_key_up(void *data, int type, void *event)
@@ -418,7 +409,6 @@ _eco_cb_key_up(void *data, int type, void *event)
   return 1;
 }
 
-
 static void
 _eco_cb_go_action(E_Object *obj, const char *params)
 {
@@ -438,14 +428,12 @@ _eco_cb_go_action(E_Object *obj, const char *params)
    _eco_cb_action(obj, params, 0);
 }
 
-
 static void
 _eco_cb_key_action(E_Object *obj, const char *params, Ecore_Event_Key *ev)
 {
   /* printf("key action\n"); */
    _eco_cb_action(obj, params, ev->modifiers);
 }
-
 
 static void 
 _eco_cb_mouse_action(E_Object *obj, const char *params, Ecore_Event_Mouse_Button *ev)
@@ -454,7 +442,6 @@ _eco_cb_mouse_action(E_Object *obj, const char *params, Ecore_Event_Mouse_Button
    _eco_cb_action(obj, params, ev->modifiers);
    eco_action.ignore_mouse_event = 2;
 }
-
 
 static int
 _eco_grab_window(int modifiers)
@@ -498,7 +485,6 @@ _eco_grab_window(int modifiers)
    return 1;
 }
 
-
 static void 
 _eco_cb_action(E_Object *obj, const char *params, int modifiers)
 {
@@ -525,54 +511,6 @@ _eco_cb_action(E_Object *obj, const char *params, int modifiers)
 	  }
      }
 }
-
-
-EAPI char*
-eco_get_bind_text(const char* action)
-{
-   E_Binding_Key *bind;
-   char b[256] = "";
-
-   bind = e_bindings_key_get(action);
-   if ((bind) && (bind->key))
-   {
-      if ((bind->mod) & (E_BINDING_MODIFIER_CTRL))
-         strcat(b, _("CTRL"));
-
-      if ((bind->mod) & (E_BINDING_MODIFIER_ALT))
-      {
-         if (b[0]) strcat(b, " + ");
-         strcat(b, _("ALT"));
-      }
-
-      if ((bind->mod) & (E_BINDING_MODIFIER_SHIFT))
-      {
-         if (b[0]) strcat(b, " + ");
-         strcat(b, _("SHIFT"));
-      }
-
-      if ((bind->mod) & (E_BINDING_MODIFIER_WIN))
-      {
-         if (b[0]) strcat(b, " + ");
-         strcat(b, _("WIN"));
-      }
-
-      if ((bind->key) && (bind->key[0]))
-      {
-         char *l;
-
-         if (b[0]) strcat(b, " + ");
-         l = strdup(bind->key);
-         l[0] = (char)toupper(bind->key[0]);
-         strcat(b, l);
-         free(l);
-      }
-      return strdup(b);
-   }
-   return NULL;
-}
-
-
 
 #define ECO_ACTION_NEW(NAME, CAT, LABEL, PARAM) \
    if ((action = e_action_add(NAME))) { \
@@ -643,8 +581,7 @@ eco_actions_create(void)
 	e_action_predef_name_set("Ecomorph", "Custom Action", "Eco_Custom_Action", NULL,
 				 "<toggle=1|0> <plugin> <action> <option1> <option2>", 1);
      }
-
-   
+ 
    // Expo
    ECO_ACTION_NEW("Eco_Expo_Initiate", "Ecomorph", "Expo Initiate", EXPO_INITIATE);
    ECO_ACTION_NEW("Eco_Expo_Next", "Ecomorph", "Expo Next", EXPO_NEXT);
@@ -745,6 +682,51 @@ eco_actions_free(void)
 
    ECO_ACTION_FREE("Eco_Opacity_Increase", "Ecomorph", "Increase Window Opacity");
    ECO_ACTION_FREE("Eco_Opacity_Decrease", "Ecomorph", "Decrease Window Opacity");
-   
 }
 
+
+
+/* EAPI char*
+ * eco_get_bind_text(const char* action)
+ * {
+ *    E_Binding_Key *bind;
+ *    char b[256] = "";
+ * 
+ *    bind = e_bindings_key_get(action);
+ *    if ((bind) && (bind->key))
+ *    {
+ *       if ((bind->mod) & (E_BINDING_MODIFIER_CTRL))
+ *          strcat(b, _("CTRL"));
+ * 
+ *       if ((bind->mod) & (E_BINDING_MODIFIER_ALT))
+ *       {
+ *          if (b[0]) strcat(b, " + ");
+ *          strcat(b, _("ALT"));
+ *       }
+ * 
+ *       if ((bind->mod) & (E_BINDING_MODIFIER_SHIFT))
+ *       {
+ *          if (b[0]) strcat(b, " + ");
+ *          strcat(b, _("SHIFT"));
+ *       }
+ * 
+ *       if ((bind->mod) & (E_BINDING_MODIFIER_WIN))
+ *       {
+ *          if (b[0]) strcat(b, " + ");
+ *          strcat(b, _("WIN"));
+ *       }
+ * 
+ *       if ((bind->key) && (bind->key[0]))
+ *       {
+ *          char *l;
+ * 
+ *          if (b[0]) strcat(b, " + ");
+ *          l = strdup(bind->key);
+ *          l[0] = (char)toupper(bind->key[0]);
+ *          strcat(b, l);
+ *          free(l);
+ *       }
+ *       return strdup(b);
+ *    }
+ *    return NULL;
+ * } */
