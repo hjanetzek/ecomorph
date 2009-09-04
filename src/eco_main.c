@@ -38,7 +38,7 @@ EAPI void *
 e_modapi_init(E_Module *m)
 {
    char buf[PATH_MAX];
-   char *eco_mode = getenv("E_ECOMORPH");
+   char *mode = getenv("E_ECOMORPH");
    
    /* Location of message catalogs for localization */
    snprintf(buf, sizeof(buf), "%s/locale", e_module_dir_get(m));
@@ -94,8 +94,8 @@ e_modapi_init(E_Module *m)
 
    /* ecore_timer_add(1.0, _e_main_cb_after_restart, NULL); */
 
-   if (eco_mode && atoi(eco_mode))
-     evil = atoi(eco_mode);
+   if (mode && atoi(mode))
+     evil = atoi(mode);
    
    if (evil)
      {

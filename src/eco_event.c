@@ -140,7 +140,7 @@ eco_event_init(void)
    _eco_zone_desk_count_set
      (e_util_zone_current_get(e_manager_current_get()));
 
-   ecore_timer_add(0.5, _cb_after_restart, NULL);
+   ecore_timer_add(1.0, _cb_after_restart, NULL);
    
    eco_stopped = 0;
    
