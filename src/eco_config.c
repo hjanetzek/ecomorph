@@ -644,16 +644,11 @@ _basic_apply_data(E_Config_Dialog *cfd, E_Config_Dialog_Data *cfdata)
       
       	   EINA_LIST_FOREACH(e_border_client_list(), l, bd)
       	     {
-      		bd = l->data;
-      
       		bd->changed = 1;
       		bd->changes.pos = 1;
       		bd->fx.x = 0;
       		bd->fx.y = 0;
       		
-      		/* if ((!bd->desk->visible) && (!bd->sticky))
-      		 *   e_border_hide(bd, 1); */
-      
       		ecore_x_window_move(bd->win, bd->x, bd->y);
       	     }
       

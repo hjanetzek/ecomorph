@@ -74,13 +74,21 @@ static int _eco_border_changes_state = 0;
 static int _eco_border_changes_type = 0;
 static int _eco_border_update_state = 0;
 
-static int eco_stopped = 0;
-
 static int
 _cb_after_restart(void *data)
 {
   _eco_message_root_send
     (ECOMORPH_ATOM_MANAGED, ECOMORPH_EVENT_RESTART, 0, 0, 0, 0);
+
+  Eina_List *l;
+  E_Border *bd;
+      
+  EINA_LIST_FOREACH(e_border_client_list(), l, bd)
+    {
+      _eco_message_send(bd->win, ECOMORPH_EVENT_DESK,
+			0, bd->desk->x, bd->desk->y, 0);
+    }
+  
   return 0;
 }
 
@@ -142,8 +150,6 @@ eco_event_init(void)
 
    ecore_timer_add(1.0, _cb_after_restart, NULL);
    
-   eco_stopped = 0;
-   
    return 1;
 }
 
@@ -168,7 +174,7 @@ eco_event_shutdown(void)
        if (bdd->damage_handler)
 	 ecore_event_handler_del(bdd->damage_handler);
 
-       e_object_unref(bdd->border);
+       e_object_unref(E_OBJECT(bdd->border));
 
        free(bdd);
      }
@@ -404,18 +410,27 @@ _eco_cb_desk_show(void *data, int ev_type, void *event)
     {
       if (bd->moving)
 	e_border_desk_set(bd, desk);
-      else if (!bd->sticky && bd->desk != desk)
-	{
-	  bd->fx.x = zone->container->manager->w + zone->w;
-	  bd->fx.y = zone->container->manager->h + zone->h;
-	  ecore_x_window_move(bd->win, bd->fx.x + bd->x, bd->fx.y + bd->y); 
-	}
       else
 	{
-	  bd->fx.x = 0;
-	  bd->fx.y = 0;
+	  bd->fx.x = (bd->desk->x - zone->desk_x_current) * zone->w;
+	  bd->fx.y = (bd->desk->y - zone->desk_y_current) * zone->h;
 	  ecore_x_window_move(bd->win, bd->fx.x + bd->x, bd->fx.y + bd->y); 
 	}
+
+      /* if intersects set border temporarily to this desk ? */
+      
+      /* else if (!bd->sticky && bd->desk != desk)
+       * 	{
+       * 	  bd->fx.x = zone->container->manager->w + zone->w;
+       * 	  bd->fx.y = zone->container->manager->h + zone->h;
+       * 	  ecore_x_window_move(bd->win, bd->fx.x + bd->x, bd->fx.y + bd->y); 
+       * 	}
+       * else
+       * 	{
+       * 	  bd->fx.x = 0;
+       * 	  bd->fx.y = 0;
+       * 	  ecore_x_window_move(bd->win, bd->fx.x + bd->x, bd->fx.y + bd->y); 
+       * 	} */
     }
   e_container_border_list_free(bl);
 
@@ -451,6 +466,10 @@ _eco_border_cb_hook_grab_begin(void *data, E_Border *bd)
     _eco_border_cb_hook_ungrab(NULL, bd);
 
   border_moveresize_active = 1;
+
+  if (bd->desk != e_desk_current_get(bd->zone))
+    e_border_desk_set(bd, e_desk_current_get(bd->zone));
+
 }
 
 static void
@@ -493,17 +512,20 @@ _eco_cb_border_desk_set(void *data, int ev_type, void *event)
   E_Event_Border_Desk_Set *ev = event;
   E_Border *bd = ev->border;
   E_Zone *zone = bd->zone;
-   
-  if (!bd->sticky && bd->desk != e_desk_current_get(zone))
-    {
-      bd->fx.x = zone->container->manager->w + zone->w;
-      bd->fx.y = zone->container->manager->h + zone->h;
-    }
-  else
-    {
-      bd->fx.x = 0;
-      bd->fx.y = 0;
-    }
+
+  bd->fx.x = (bd->desk->x - bd->zone->desk_x_current) * bd->zone->w;
+  bd->fx.y = (bd->desk->y - bd->zone->desk_y_current) * bd->zone->h;
+  
+  /* if (!bd->sticky && bd->desk != e_desk_current_get(zone))
+   *   {
+   *     bd->fx.x = zone->container->manager->w + zone->w;
+   *     bd->fx.y = zone->container->manager->h + zone->h;
+   *   }
+   * else
+   *   {
+   *     bd->fx.x = 0;
+   *     bd->fx.y = 0;
+   *   } */
 
   ecore_x_window_move(bd->win, bd->fx.x + bd->x, bd->fx.y + bd->y); 	
 
@@ -700,16 +722,19 @@ _eco_border_cb_hook_pre_new_border(void *data, E_Border *bd)
     {
       E_Zone *zone = bd->zone;
 
-      if (!bd->sticky && bd->desk != e_desk_current_get(zone))
-	{
-	  bd->fx.x = zone->container->manager->w + zone->w;
-	  bd->fx.y = zone->container->manager->h + zone->h;
-	}
-      else
-	{
-	  bd->fx.x = 0;
-	  bd->fx.y = 0;
-	}
+      bd->fx.x = (bd->desk->x - bd->zone->desk_x_current) * bd->zone->w;
+      bd->fx.y = (bd->desk->y - bd->zone->desk_y_current) * bd->zone->h;
+
+      /* if (!bd->sticky && bd->desk != e_desk_current_get(zone))
+       * 	{
+       * 	  bd->fx.x = zone->container->manager->w + zone->w;
+       * 	  bd->fx.y = zone->container->manager->h + zone->h;
+       * 	}
+       * else
+       * 	{
+       * 	  bd->fx.x = 0;
+       * 	  bd->fx.y = 0;
+       * 	} */
 	
       bd->changes.pos = 1;
       bd->changed = 1;
