@@ -53,9 +53,15 @@ AC_ARG_ENABLE(homedir-install,
   [ datadir="${HOME}/.e/e/modules/${PACKAGE}" ]
 )
 
+#scriptdir=$(pkg-config --variable=prefix enlightenment)
+scriptdir=/usr/local/bin/
+
 AC_OUTPUT([
 Makefile
 src/Makefile
+scripts/Makefile
+xsession/ecomorph.desktop
+xsession/Makefile
 po/Makefile.in
 module.desktop
 e_modules-ecomorph.spec
