@@ -159,6 +159,8 @@ eco_event_shutdown(void)
    Ecore_Event_Handler *h;
    E_Border_Hook *hook;
    Eco_Border_Data *bdd;
+   Eina_List *l;
+   E_Border *bd;
    
    EINA_LIST_FREE (eco_handlers, h)
      ecore_event_handler_del(h);
@@ -166,6 +168,21 @@ eco_event_shutdown(void)
    EINA_LIST_FREE (eco_border_hooks, hook)
      e_border_hook_del(hook);
 
+   if (restart && evil)
+     _eco_message_root_send(ECOMORPH_ATOM_MANAGED,
+			    ECOMORPH_EVENT_RESTART,
+			    0, 1, 0, 0);
+   
+   EINA_LIST_FOREACH(e_border_client_list(), l, bd)
+     {
+       bd->changed = 1;
+       bd->changes.pos = 1;
+       bd->fx.x = 0;
+       bd->fx.y = 0;
+		
+       ecore_x_window_move(bd->win, bd->x, bd->y);
+     }
+   
    EINA_LIST_FREE (eco_borders, bdd)
      {
        if (bdd->damage)
@@ -360,6 +377,16 @@ _eco_cb_zone_desk_count_set(void *data, int ev_type, void *ev)
    return 1;
 }
 
+static void
+_eco_desk_event_desk_after_show_free(void *data, void *event)
+{
+  E_Event_Desk_After_Show *ev;
+
+  ev = event;
+  e_object_unref(E_OBJECT(ev->desk));
+  free(ev);
+}
+
 static int
 _eco_cb_desk_show(void *data, int ev_type, void *event)
 {
@@ -371,7 +398,8 @@ _eco_cb_desk_show(void *data, int ev_type, void *event)
   E_Desk *desk;
   E_Zone *zone;
   E_Border_List *bl;
-   
+  E_Event_Desk_After_Show *eev;
+
   ev = event;
   desk = ev->desk;
   zone = desk->zone;
@@ -433,6 +461,12 @@ _eco_cb_desk_show(void *data, int ev_type, void *event)
        * 	} */
     }
   e_container_border_list_free(bl);
+
+  eev = E_NEW(E_Event_Desk_After_Show, 1);
+  eev->desk = desk;
+  e_object_ref(E_OBJECT(desk));
+  ecore_event_add(E_EVENT_DESK_AFTER_SHOW, eev, 
+		  _eco_desk_event_desk_after_show_free, NULL);
 
   return 1;
 }

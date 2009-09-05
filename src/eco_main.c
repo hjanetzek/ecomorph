@@ -94,7 +94,7 @@ e_modapi_init(E_Module *m)
 
    /* ecore_timer_add(1.0, _e_main_cb_after_restart, NULL); */
 
-   if (mode && atoi(mode))
+   if (mode)
      evil = atoi(mode);
    
    if (evil)
@@ -114,11 +114,7 @@ e_modapi_init(E_Module *m)
 
    return m;
 }
-_eco_message_root_send(Ecore_X_Atom atom, long l1, long l2, long l3, long l4, long l5)
-{
-  ecore_x_client_message32_send
-    (e_manager_current_get()->root, atom, SubstructureNotifyMask, l1, l2, l3, l4, l5);
-}
+
 EAPI int
 e_modapi_shutdown(E_Module *m)
 {
@@ -134,34 +130,12 @@ e_modapi_shutdown(E_Module *m)
 	maug = NULL;
      }
 
-   printf("shutdown: %d\n", active);
-   
    if (active)
      {
-       Eina_List *l;
-       E_Border *bd;
-
        eco_actions_free();
        eco_event_shutdown();
 
-       if (restart && evil)
-	 _eco_message_root_send(ECOMORPH_ATOM_MANAGED,
-				ECOMORPH_EVENT_RESTART,
-				0, 1, 0, 0);
-   
-       EINA_LIST_FOREACH(e_border_client_list(), l, bd)
-	 {
-	   bd->changed = 1;
-	   bd->changes.pos = 1;
-	   bd->fx.x = 0;
-	   bd->fx.y = 0;
-		
-	   /* if ((!bd->desk->visible) && (!bd->sticky))
-	    *   e_border_hide(bd, 1); */
-
-	   ecore_x_window_move(bd->win, bd->x, bd->y);
-	 }
-
+       
        e_config->desk_flip_animate_mode = 0;
      }
    
