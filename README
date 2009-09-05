@@ -5,3 +5,7 @@
 5. activate ecomorph mode under 
    -> settings -> ecomorph
    click apply
+
+6. if everything works well you can log out 
+    and start ecomorph.sh + ecomorph-mode
+    via "ecomorph - e17 session"
