@@ -1,3 +1,6 @@
+Ecomorph is a compositing manager for e17. It consists of the ecomorph
+module and ecomp. ecomp is based on compiz 0.6.
+
 
 1. install ecomp, from http://github.com/jeffdameth/ecomp/tree/master
 2. install ecomorph module.. from there where this REAME file comes from 
@@ -13,9 +16,23 @@
 
 
 Requiered packages for building on debian/ubuntu:
-
  git-core automake intltool libtool 
  xorg-dev libjpeg62-dev libpng12-dev 
  librsvg2-dev libgl1-mesa-dev 
  libglu1-mesa-dev libxml2-dev 
  libxslt1 libxslt1-dev libdbus-1-dev 
+
+Itask-NG:
+ with itask-ng the minimize animation zooms to the bar icon when
+ 'ecomorph features' are enabled.
+ try it with magic lamp minimize animation (=
+ 
+ http://code.google.com/p/itask-module/
+ 
+
+Round Window Corners:
+ if you ever wanted nicely looking rounded window corners, like me, 
+ then you can try a hacked detour theme from, for a taste. this is 
+ still little fake though.
+ 
+ http://staff.get-e.org/~jeffdameth/detour-rounded4.edj

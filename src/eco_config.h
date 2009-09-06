@@ -204,6 +204,7 @@ EAPI void eco_config_animation5(void *data);
 EAPI void eco_config_animation_open(void *data);
 EAPI void eco_config_animation_close(void *data);
 EAPI void eco_config_animation_minimize(void *data);
+EAPI void eco_config_animation_focus(void *data);
 EAPI void eco_config_move(void *data);
 EAPI void eco_config_cube(void *data);
 EAPI void eco_config_cubereflex(void *data);

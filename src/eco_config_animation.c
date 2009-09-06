@@ -297,8 +297,21 @@ eco_config_animation_minimize(void *data)
   effect_names  =  minimize_effect_name;
   effect_cnt    =  MINIMIZE_EFF_NUM;
   
-  eco_config_animation_page(data);
+  eco_config_animation_page(data); 
+}
+
+void
+eco_config_animation_focus(void *data)
+{
+  str_effects   = "focus_effects";
+  str_matches   = "focus_matches" ;
+  str_durations = "focus_durations";
+  str_randoms   = "focus_random_effects";
+  str_options   = "focus_options";
+  effect_names  =  focus_effect_name;
+  effect_cnt    =  FOCUS_EFF_NUM;
   
+  eco_config_animation_page(data);
 }
 
 

@@ -479,6 +479,10 @@ eco_list_populate(Evas_Object *list)
 
    ico = e_icon_add(dialog_data->evas);
    e_icon_file_edje_set(ico, edje_file, "icon_animation");
+   e_widget_ilist_append(list, ico, _("Focus animation"), eco_config_animation_focus, dialog_data, NULL);
+
+   ico = e_icon_add(dialog_data->evas);
+   e_icon_file_edje_set(ico, edje_file, "icon_animation");
    e_widget_ilist_append(list, ico, _("Effect settings (1)"), eco_config_animation, dialog_data, NULL);
 
    ico = e_icon_add(dialog_data->evas);
