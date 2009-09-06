@@ -37,6 +37,7 @@ module_la_SOURCES      = e_mod_main.h \
                          eco_config_cubereflex.c \
                          eco_config_rotate.c \
                          eco_config_thumbnail.c \
+                         eco_config_decoration.c \
 			 eco_config_general.c
 
 

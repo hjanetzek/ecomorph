@@ -462,6 +462,10 @@ eco_list_populate(Evas_Object *list)
    e_icon_file_edje_set(ico, edje_file, "icon");
    e_widget_ilist_append(list, ico, _("Window Move/Resize"), eco_config_move, dialog_data, NULL);
 
+   ico = e_icon_add(dialog_data->evas);
+   e_icon_file_edje_set(ico, edje_file, "icon");
+   e_widget_ilist_append(list, ico, _("Drop Shadow"), eco_config_decoration, dialog_data, NULL);
+
    //Animations
    e_widget_ilist_header_append(list, NULL, _("Animations"));
 

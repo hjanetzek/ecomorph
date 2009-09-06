@@ -210,6 +210,7 @@ EAPI void eco_config_cube(void *data);
 EAPI void eco_config_cubereflex(void *data);
 EAPI void eco_config_rotate(void *data);
 EAPI void eco_config_thumbnail(void *data);
+EAPI void eco_config_decoration(void *data);
 
 #endif
 #endif
