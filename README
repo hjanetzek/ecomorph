@@ -22,17 +22,20 @@ Requiered packages for building on debian/ubuntu:
  libglu1-mesa-dev libxml2-dev 
  libxslt1 libxslt1-dev libdbus-1-dev 
 
+Suggestion for Matching Rules
+ Dropshadow: type=any & !(type=dock | utility | unknown)
+
 Itask-NG:
  with itask-ng the minimize animation zooms to the bar icon when
- 'ecomorph features' are enabled.
- try it with magic lamp minimize animation (=
+ 'ecomorph features' are enabled. try it with magic lamp minimize
+ animation (=
  
  http://code.google.com/p/itask-module/
  
 
 Round Window Corners:
- if you ever wanted nicely looking rounded window corners, like me, 
- then you can try a hacked detour theme from, for a taste. this is 
- still little fake though.
+ if you ever wanted nicely looking rounded window corners then you can
+ try a hacked detour theme from, for a taste. this is still little
+ fake though.
  
  http://staff.get-e.org/~jeffdameth/detour-rounded4.edj

@@ -801,6 +801,9 @@ _eco_border_cb_hook_post_new_border(void *data, E_Border *bd)
 
       ecore_x_netwm_desktop_set
 	(bd->win, bd->desk->x + (zone->desk_x_count * bd->desk->y));
+
+      if (bd->client.netwm.type)
+	ecore_x_netwm_window_type_set(bd->win, bd->client.netwm.type);
     }
 }
 

@@ -177,13 +177,15 @@ eco_config_group_close()
   
   if (cfg_screen)
     {
-       eina_hash_foreach(cfg_screen->data,  _eco_free_group, NULL);
+      if (cfg_screen->data)
+	eina_hash_foreach(cfg_screen->data,  _eco_free_group, NULL);
       free(cfg_screen);
       cfg_screen  = NULL;
     }
   if (cfg_display)
     {
-      eina_hash_foreach(cfg_display->data, _eco_free_group, NULL);
+      if (cfg_display->data)
+	eina_hash_foreach(cfg_display->data, _eco_free_group, NULL);
       free(cfg_display);
       cfg_display = NULL;
     }
