@@ -722,7 +722,8 @@ _eco_border_cb_hook_new_border(void *data, E_Border *bd)
   e_bindings_mouse_ungrab(E_BINDING_CONTEXT_BORDER, bd->win);
   e_bindings_wheel_ungrab(E_BINDING_CONTEXT_BORDER, bd->win);
   ecore_x_window_free(bd->win);
-   
+  e_focus_setdown(bd);
+  
   bd->win = ecore_x_window_manager_argb_new(con->win, 0, 0, bd->w, bd->h);
   ecore_x_window_prop_card32_set(bd->win, ECOMORPH_ATOM_MANAGED, &(bd->client.win), 1);
    
@@ -739,10 +740,9 @@ _eco_border_cb_hook_new_border(void *data, E_Border *bd)
   bd->bg_evas = ecore_evas_get(bd->bg_ecore_evas);
   ecore_evas_name_class_set(bd->bg_ecore_evas, "E", "Frame_Window");
   ecore_evas_title_set(bd->bg_ecore_evas, "Enlightenment Frame");
-
   bd->client.shell_win = ecore_x_window_manager_argb_new(bd->win, 0, 0, 1, 1);
   ecore_x_window_container_manage(bd->client.shell_win);
-   
+  
   bd->x = MOD(bd->x, bd->zone->w);
   bd->y = MOD(bd->y, bd->zone->h);
 }
