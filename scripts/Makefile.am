@@ -1,5 +1,5 @@
 MAINTAINERCLEANFILES = Makefile.in
-filesdir = $(prefix)/bin
+filesdir = $(DESTDIR)$(prefix)/bin
 files_DATA = enlightenment_start.sh ecomorph.sh
 
 

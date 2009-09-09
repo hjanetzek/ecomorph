@@ -1,7 +1,7 @@
 Ecomorph is a compositing manager for e17. It consists of the ecomorph
 module and ecomp. ecomp is based on compiz 0.6.
 
-
+0. install the latest e from svn
 1. install ecomp, from http://github.com/jeffdameth/ecomp/tree/master
 2. install ecomorph module.. from there where this REAME file comes from 
 3. run ecomorph.sh
