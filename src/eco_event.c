@@ -338,18 +338,21 @@ _eco_cb_client_message(void *data, int ev_type, void *ev)
      }
    else if (e->message_type == ECOMORPH_ATOM_MANAGED)
      {
-	int type = (int)e->data.l[0];
-	int val =(int) e->data.l[1];
+        int type = (int)e->data.l[1];
+	int val =(int) e->data.l[2];
+
+	printf("ecomp event %d %d\n", type, val);
 	
-	switch(val) {
-	case ECOMORPH_ECOMP_PLUGIN_END:
-	  eco_action_terminate();
-	break;
-	case ECOMORPH_ECOMP_WINDOW_MOVE:
-	  break;
-	default:	     
-	     break;
-	}
+	switch(type)
+	  {
+	  case ECOMORPH_ECOMP_PLUGIN_END:
+	    eco_action_terminate();
+	    break;
+	  case ECOMORPH_ECOMP_WINDOW_MOVE:
+	    break;
+	  default:	     
+	    break;
+	  }
      }
 
    return 1;

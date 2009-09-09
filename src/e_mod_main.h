@@ -21,8 +21,6 @@
 #define ECOMORPH_WINDOW_STATE_INVISIBLE 0
 #define ECOMORPH_WINDOW_STATE_VISIBLE 1
 
-#define ECO_PLUGIN_TERMINATE_NOTIFY 1
-
 #include "eco_config.h"
 #include "eco_actions.h"
 #include "eco_event.h"
