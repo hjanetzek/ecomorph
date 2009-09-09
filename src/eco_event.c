@@ -342,11 +342,12 @@ _eco_cb_client_message(void *data, int ev_type, void *ev)
 	int val =(int) e->data.l[1];
 	
 	switch(val) {
-	 case ECO_PLUGIN_TERMINATE_NOTIFY:
-	    eco_action_terminate();
-	     break;
-	default:
-	     
+	case ECOMORPH_ECOMP_PLUGIN_END:
+	  eco_action_terminate();
+	break;
+	case ECOMORPH_ECOMP_WINDOW_MOVE:
+	  break;
+	default:	     
 	     break;
 	}
      }
@@ -444,21 +445,6 @@ _eco_cb_desk_show(void *data, int ev_type, void *event)
 	  bd->fx.y = (bd->desk->y - zone->desk_y_current) * zone->h;
 	  ecore_x_window_move(bd->win, bd->fx.x + bd->x, bd->fx.y + bd->y); 
 	}
-
-      /* if intersects set border temporarily to this desk ? */
-      
-      /* else if (!bd->sticky && bd->desk != desk)
-       * 	{
-       * 	  bd->fx.x = zone->container->manager->w + zone->w;
-       * 	  bd->fx.y = zone->container->manager->h + zone->h;
-       * 	  ecore_x_window_move(bd->win, bd->fx.x + bd->x, bd->fx.y + bd->y); 
-       * 	}
-       * else
-       * 	{
-       * 	  bd->fx.x = 0;
-       * 	  bd->fx.y = 0;
-       * 	  ecore_x_window_move(bd->win, bd->fx.x + bd->x, bd->fx.y + bd->y); 
-       * 	} */
     }
   e_container_border_list_free(bl);
 
@@ -549,17 +535,6 @@ _eco_cb_border_desk_set(void *data, int ev_type, void *event)
 
   bd->fx.x = (bd->desk->x - bd->zone->desk_x_current) * bd->zone->w;
   bd->fx.y = (bd->desk->y - bd->zone->desk_y_current) * bd->zone->h;
-  
-  /* if (!bd->sticky && bd->desk != e_desk_current_get(zone))
-   *   {
-   *     bd->fx.x = zone->container->manager->w + zone->w;
-   *     bd->fx.y = zone->container->manager->h + zone->h;
-   *   }
-   * else
-   *   {
-   *     bd->fx.x = 0;
-   *     bd->fx.y = 0;
-   *   } */
 
   ecore_x_window_move(bd->win, bd->fx.x + bd->x, bd->fx.y + bd->y); 	
 
@@ -623,19 +598,6 @@ _eco_bordercb_damage_notify(void *data, int ev_type, void *ev)
       ecore_event_handler_del(bdd->damage_handler);
       bdd->damage_handler = NULL;
 
-      /* not sure if this triggers a bug in ecomp or if xul is just weird */
-      /* if (bd->client.icccm.transient_for &&
-       * 	  (bd->client.icccm.class) &&
-       * 	  (!bd->remember || !bd->remember->prop.w) &&
-       * 	  (!strcmp(bd->client.icccm.class, "Firefox")))
-       * 	{
-       * 	   if (bdd->damage_timeout)
-       * 	     ecore_timer_del(bdd->damage_timeout);
-       * 	   bdd->damage_timeout = ecore_timer_add
-       * 	     (0.1, _eco_borderdamage_wait_time_out, bdd);
-       * 	   return 0;
-       * 	} */
-
       _eco_message_send(bd->win, ECOMORPH_EVENT_MAPPED,
 			0, ECOMORPH_WINDOW_STATE_VISIBLE, 0, 0); 
 
@@ -698,6 +660,9 @@ _eco_cb_border_remove(void *data, int ev_type, void *ev)
   if (bdd->damage_handler) ecore_event_handler_del(bdd->damage_handler);
   if (bdd->damage_timeout) ecore_timer_del(bdd->damage_timeout);
   free(bdd);
+
+  /* XXX hack to disable e's own deskflip */
+  e_config->desk_flip_animate_mode = -1;
   
   return 1;
 }
@@ -723,8 +688,15 @@ _eco_border_cb_hook_new_border(void *data, E_Border *bd)
   e_bindings_wheel_ungrab(E_BINDING_CONTEXT_BORDER, bd->win);
   ecore_x_window_free(bd->win);
   e_focus_setdown(bd);
-  
-  bd->win = ecore_x_window_manager_argb_new(con->win, 0, 0, bd->w, bd->h);
+
+  if (bd->client.argb)
+    bd->win = ecore_x_window_manager_argb_new(con->win, 0, 0, bd->w, bd->h);
+  else
+    {
+      bd->win = ecore_x_window_override_new(con->win, 0, 0, bd->w, bd->h);
+      ecore_x_window_shape_events_select(bd->win, 1);
+    }
+  /* bd->win = ecore_x_window_manager_argb_new(con->win, 0, 0, bd->w, bd->h); */
   ecore_x_window_prop_card32_set(bd->win, ECOMORPH_ATOM_MANAGED, &(bd->client.win), 1);
    
   e_bindings_mouse_grab(E_BINDING_CONTEXT_BORDER, bd->win);
@@ -740,7 +712,12 @@ _eco_border_cb_hook_new_border(void *data, E_Border *bd)
   bd->bg_evas = ecore_evas_get(bd->bg_ecore_evas);
   ecore_evas_name_class_set(bd->bg_ecore_evas, "E", "Frame_Window");
   ecore_evas_title_set(bd->bg_ecore_evas, "Enlightenment Frame");
-  bd->client.shell_win = ecore_x_window_manager_argb_new(bd->win, 0, 0, 1, 1);
+
+  // bd->client.shell_win = ecore_x_window_manager_argb_new(bd->win, 0, 0, 1, 1);
+  if (bd->client.argb)
+    bd->client.shell_win = ecore_x_window_manager_argb_new(bd->win, 0, 0, 1, 1);
+  else
+    bd->client.shell_win = ecore_x_window_override_new(bd->win, 0, 0, 1, 1);
   ecore_x_window_container_manage(bd->client.shell_win);
   
   bd->x = MOD(bd->x, bd->zone->w);
@@ -758,17 +735,6 @@ _eco_border_cb_hook_pre_new_border(void *data, E_Border *bd)
 
       bd->fx.x = (bd->desk->x - bd->zone->desk_x_current) * bd->zone->w;
       bd->fx.y = (bd->desk->y - bd->zone->desk_y_current) * bd->zone->h;
-
-      /* if (!bd->sticky && bd->desk != e_desk_current_get(zone))
-       * 	{
-       * 	  bd->fx.x = zone->container->manager->w + zone->w;
-       * 	  bd->fx.y = zone->container->manager->h + zone->h;
-       * 	}
-       * else
-       * 	{
-       * 	  bd->fx.x = 0;
-       * 	  bd->fx.y = 0;
-       * 	} */
 	
       bd->changes.pos = 1;
       bd->changed = 1;
