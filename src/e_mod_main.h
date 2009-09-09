@@ -33,11 +33,12 @@
 
 #define LIST_PUSH(_list, _data)			\
   if (_data)					\
-    _list = eina_list_append(_list, _data);
+    _list = eina_list_append(_list, _data);	\
+  
 
-#define LIST_REMOVE_DATA(_list, _data)		\
+#define LIST_REMOVE_DATA(_lll, _data)		\
   if (_data)					\
-    _list = eina_list_remove(_list, _data);
+    _lll = eina_list_remove(_lll, _data);	\
 
   
 #define MOD(a,b) ((a) < 0 ? ((b) - ((-(a) - 1) % (b))) - 1 : (a) % (b))
@@ -56,3 +57,4 @@ EAPI int   e_modapi_save     (E_Module *m);
 extern Ecore_X_Atom ECOMORPH_ATOM_MANAGED;
 extern Ecore_X_Atom ECOMORPH_ATOM_PLUGIN;
 #endif
+

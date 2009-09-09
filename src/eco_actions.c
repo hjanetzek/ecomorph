@@ -452,6 +452,8 @@ _eco_cb_mouse_action(E_Object *obj, const char *params, Ecore_Event_Mouse_Button
 static int
 _eco_grab_window(int modifiers)
 {
+   Ecore_Event_Handler *h;
+   
    ecore_x_keyboard_ungrab();
    ecore_x_pointer_ungrab();
    ecore_x_sync();
@@ -466,13 +468,18 @@ _eco_grab_window(int modifiers)
 	input_window = 0;
 	return 0;
      }
-   LIST_PUSH(act_handlers, (ecore_event_handler_add(ECORE_EVENT_KEY_DOWN,   _eco_cb_key_down, NULL)));
-   LIST_PUSH(act_handlers, (ecore_event_handler_add(ECORE_EVENT_KEY_UP,     _eco_cb_key_up, NULL)));
-   LIST_PUSH(act_handlers, (ecore_event_handler_add(ECORE_EVENT_MOUSE_MOVE, _eco_cb_mouse_move, NULL)));
-   LIST_PUSH(act_handlers, (ecore_event_handler_add(ECORE_EVENT_MOUSE_BUTTON_DOWN, _eco_cb_mouse_down, NULL)));
-   LIST_PUSH(act_handlers, (ecore_event_handler_add(ECORE_EVENT_MOUSE_BUTTON_UP, _eco_cb_mouse_up, NULL)));
-   LIST_PUSH(act_handlers, (ecore_event_handler_add(ECORE_EVENT_MOUSE_WHEEL, _eco_cb_mouse_wheel, NULL)));
-
+   h = ecore_event_handler_add(ECORE_EVENT_KEY_DOWN,   _eco_cb_key_down, NULL);
+   act_handlers = eina_list_append(act_handlers, h);
+   h = ecore_event_handler_add(ECORE_EVENT_KEY_UP,     _eco_cb_key_up, NULL);
+   act_handlers = eina_list_append(act_handlers, h);
+   h = ecore_event_handler_add(ECORE_EVENT_MOUSE_MOVE, _eco_cb_mouse_move, NULL);
+   act_handlers = eina_list_append(act_handlers, h);
+   h = ecore_event_handler_add(ECORE_EVENT_MOUSE_BUTTON_DOWN, _eco_cb_mouse_down, NULL);
+   act_handlers = eina_list_append(act_handlers, h);
+   h = ecore_event_handler_add(ECORE_EVENT_MOUSE_BUTTON_UP, _eco_cb_mouse_up, NULL);
+   act_handlers = eina_list_append(act_handlers, h);
+   h = ecore_event_handler_add(ECORE_EVENT_MOUSE_WHEEL, _eco_cb_mouse_wheel, NULL);
+   act_handlers = eina_list_append(act_handlers, h);
    /* Remember current modifiers */
    _eco_modifiers_set(modifiers);
    
