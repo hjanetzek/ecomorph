@@ -108,17 +108,22 @@ EAPI void
 eco_action_terminate(void) /* TODO add arg if message should be send
 			      or if we just update state from ecomp */
 {
+   Ecore_Event_Handler *h;
+   printf("action terminate\n");
+   
    if (act_handlers)
      {
-	hold_count = 0;
+	printf("action terminate 2\n");
+        hold_count = 0;
 	hold_mod = 0;
-	while (act_handlers)
+	EINA_LIST_FREE(act_handlers, h)
 	  {
-	     ecore_event_handler_del(act_handlers->data);
-	     act_handlers = eina_list_remove_list(act_handlers, act_handlers);
+	     printf("del handler\n");
+	     
+	     ecore_event_handler_del(h);
 	  }
-	e_grabinput_release(input_window, input_window);/// XXX before
-							/// or after >>?
+	
+	e_grabinput_release(input_window, input_window);
 	ecore_x_window_free(input_window);
 
 	input_window = 0;
@@ -239,7 +244,8 @@ static int
 _eco_cb_mouse_wheel(void *data, int type, void *event)
 {
    Ecore_Event_Mouse_Wheel *ev = event;
-
+   printf("mouse wheel\n");
+   
    eco_action.action = ECO_ACT_CYCLE;
    
    if (ev->direction > 0)
@@ -460,24 +466,12 @@ _eco_grab_window(int modifiers)
 	input_window = 0;
 	return 0;
      }
-   act_handlers = eina_list_append
-     (act_handlers, ecore_event_handler_add
-      (ECORE_EVENT_KEY_DOWN, _eco_cb_key_down, NULL));
-   act_handlers = eina_list_append
-     (act_handlers, ecore_event_handler_add
-      (ECORE_EVENT_KEY_UP, _eco_cb_key_up, NULL));
-   act_handlers = eina_list_append
-     (act_handlers, ecore_event_handler_add
-      (ECORE_EVENT_MOUSE_MOVE, _eco_cb_mouse_move, NULL));
-   act_handlers = eina_list_append
-     (act_handlers, ecore_event_handler_add
-      (ECORE_EVENT_MOUSE_BUTTON_DOWN, _eco_cb_mouse_down, NULL));
-   act_handlers = eina_list_append
-     (act_handlers, ecore_event_handler_add
-      (ECORE_EVENT_MOUSE_BUTTON_UP, _eco_cb_mouse_up, NULL));
-   act_handlers = eina_list_append
-     (act_handlers, ecore_event_handler_add
-      (ECORE_EVENT_MOUSE_WHEEL, _eco_cb_mouse_wheel, NULL));
+   LIST_PUSH(act_handlers, (ecore_event_handler_add(ECORE_EVENT_KEY_DOWN,   _eco_cb_key_down, NULL)));
+   LIST_PUSH(act_handlers, (ecore_event_handler_add(ECORE_EVENT_KEY_UP,     _eco_cb_key_up, NULL)));
+   LIST_PUSH(act_handlers, (ecore_event_handler_add(ECORE_EVENT_MOUSE_MOVE, _eco_cb_mouse_move, NULL)));
+   LIST_PUSH(act_handlers, (ecore_event_handler_add(ECORE_EVENT_MOUSE_BUTTON_DOWN, _eco_cb_mouse_down, NULL)));
+   LIST_PUSH(act_handlers, (ecore_event_handler_add(ECORE_EVENT_MOUSE_BUTTON_UP, _eco_cb_mouse_up, NULL)));
+   LIST_PUSH(act_handlers, (ecore_event_handler_add(ECORE_EVENT_MOUSE_WHEEL, _eco_cb_mouse_wheel, NULL)));
 
    /* Remember current modifiers */
    _eco_modifiers_set(modifiers);

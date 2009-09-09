@@ -21,6 +21,28 @@
 #define ECOMORPH_WINDOW_STATE_INVISIBLE 0
 #define ECOMORPH_WINDOW_STATE_VISIBLE 1
 
+#define LIST_DATA_BY_MEMBER_FIND(_list, _member, _data, _result)	\
+  {									\
+    Eina_List *l;							\
+    _result = NULL;							\
+    EINA_LIST_FOREACH(_list, l, _result)				\
+      if (_result && _result->_member == _data)			       	\
+	break;								\
+    if (_result && (_result->_member != _data)) _result = NULL;		\
+  }
+
+#define LIST_PUSH(_list, _data)			\
+  if (_data)					\
+    _list = eina_list_append(_list, _data);
+
+#define LIST_REMOVE_DATA(_list, _data)		\
+  if (_data)					\
+    _list = eina_list_remove(_list, _data);
+
+  
+#define MOD(a,b) ((a) < 0 ? ((b) - ((-(a) - 1) % (b))) - 1 : (a) % (b))
+
+
 #include "eco_config.h"
 #include "eco_actions.h"
 #include "eco_event.h"

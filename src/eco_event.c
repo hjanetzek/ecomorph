@@ -1,17 +1,6 @@
 #include "e_mod_main.h"
 #include <X11/Xlib.h>
 
-#define LIST_DATA_BY_MEMBER_FIND(_list, _type, _member, _data, _result)	\
-  {									\
-    _type *data = NULL;							\
-    Eina_List *l;							\
-    EINA_LIST_FOREACH(_list, l, data)					\
-      if (data && data->_member == _data)				\
-	break;								\
-    _result = data;							\
-  }
-
-#define MOD(a,b) ((a) < 0 ? ((b) - ((-(a) - 1) % (b))) - 1 : (a) % (b))
 
 typedef struct _Eco_Border_Data Eco_Border_Data;
 typedef struct _Eco_Icon Eco_Icon;
@@ -62,8 +51,8 @@ static int  _eco_window_icon_init(void);
 static void _eco_window_icon_shutdown(void);
 static Evas_Object *_eco_border_icon_add(E_Border *bd, Evas *evas, int size);
 
-static Eina_List *eco_handlers = NULL;
-static Eina_List *eco_border_hooks = NULL;
+static Eina_List *handlers = NULL;
+static Eina_List *hooks = NULL;
 static Eina_List *eco_borders = NULL;
 static Eco_Icon *icon = NULL;
 static int border_moveresize_active = 0;
@@ -99,49 +88,28 @@ eco_event_init(void)
    Ecore_Event_Handler *h;
    E_Border_Hook *hook;
    
-   h = ecore_event_handler_add(ECORE_X_EVENT_CLIENT_MESSAGE, _eco_cb_client_message, NULL);
-   if (h) eco_handlers = eina_list_append(eco_handlers, h);
-   h = ecore_event_handler_add(E_EVENT_ZONE_DESK_COUNT_SET, _eco_cb_zone_desk_count_set, NULL);
-   if (h) eco_handlers = eina_list_append(eco_handlers, h);
-   h = ecore_event_handler_add(E_EVENT_BORDER_ICON_CHANGE, _eco_cb_border_icon_change, NULL);
-   if (h) eco_handlers = eina_list_append(eco_handlers, h);
-   h = ecore_event_handler_add(E_EVENT_BORDER_REMOVE, _eco_cb_border_remove, NULL);
-   if (h) eco_handlers = eina_list_append(eco_handlers, h);
-   h = ecore_event_handler_add(E_EVENT_BORDER_SHOW, _eco_cb_border_show, NULL);
-   if (h) eco_handlers = eina_list_append(eco_handlers, h);
-   h = ecore_event_handler_add(E_EVENT_BORDER_DESK_SET, _eco_cb_border_desk_set, NULL);
-   if (h) eco_handlers = eina_list_append(eco_handlers, h);
-   h = ecore_event_handler_add(E_EVENT_DESK_SHOW, _eco_cb_desk_show, NULL);
-   if (h) eco_handlers = eina_list_append(eco_handlers, h);
-   h = ecore_event_handler_add(E_EVENT_BORDER_FOCUS_IN, _eco_cb_border_focus, NULL);
-   if (h) eco_handlers = eina_list_append(eco_handlers, h);
-   h = ecore_event_handler_add(E_EVENT_BORDER_FOCUS_OUT, _eco_cb_border_focus, NULL);
-   if (h) eco_handlers = eina_list_append(eco_handlers, h);
+   LIST_PUSH(handlers, ecore_event_handler_add(ECORE_X_EVENT_CLIENT_MESSAGE, _eco_cb_client_message, NULL));
+   LIST_PUSH(handlers, ecore_event_handler_add(E_EVENT_ZONE_DESK_COUNT_SET, _eco_cb_zone_desk_count_set, NULL));
+   LIST_PUSH(handlers, ecore_event_handler_add(E_EVENT_BORDER_ICON_CHANGE, _eco_cb_border_icon_change, NULL));
+   LIST_PUSH(handlers, ecore_event_handler_add(E_EVENT_BORDER_REMOVE, _eco_cb_border_remove, NULL));
+   LIST_PUSH(handlers, ecore_event_handler_add(E_EVENT_BORDER_SHOW, _eco_cb_border_show, NULL));
+   LIST_PUSH(handlers, ecore_event_handler_add(E_EVENT_BORDER_DESK_SET, _eco_cb_border_desk_set, NULL));
+   LIST_PUSH(handlers, ecore_event_handler_add(E_EVENT_DESK_SHOW, _eco_cb_desk_show, NULL));
+   LIST_PUSH(handlers, ecore_event_handler_add(E_EVENT_BORDER_FOCUS_IN, _eco_cb_border_focus, NULL));
+   LIST_PUSH(handlers, ecore_event_handler_add(E_EVENT_BORDER_FOCUS_OUT, _eco_cb_border_focus, NULL));
    
-   hook = e_border_hook_add(E_BORDER_HOOK_NEW_BORDER, _eco_border_cb_hook_new_border, NULL);
-   if (hook) eco_border_hooks = eina_list_append(eco_border_hooks, hook);
-   hook = e_border_hook_add(E_BORDER_HOOK_EVAL_PRE_NEW_BORDER, _eco_border_cb_hook_pre_new_border, NULL);
-   if (hook) eco_border_hooks = eina_list_append(eco_border_hooks, hook);
-   hook = e_border_hook_add(E_BORDER_HOOK_EVAL_POST_NEW_BORDER, _eco_border_cb_hook_post_new_border, NULL);
-   if (hook) eco_border_hooks = eina_list_append(eco_border_hooks, hook);
-   hook = e_border_hook_add(E_BORDER_HOOK_EVAL_PRE_FETCH, _eco_border_cb_hook_pre_fetch, NULL);
-   if (hook) eco_border_hooks = eina_list_append(eco_border_hooks, hook);
-   hook = e_border_hook_add(E_BORDER_HOOK_EVAL_POST_FETCH, _eco_border_cb_hook_post_fetch, NULL);
-   if (hook) eco_border_hooks = eina_list_append(eco_border_hooks, hook);
-   hook = e_border_hook_add(E_BORDER_HOOK_SET_DESK, _eco_border_cb_hook_set_desk, NULL);
-   if (hook) eco_border_hooks = eina_list_append(eco_border_hooks, hook);
-   hook = e_border_hook_add(E_BORDER_HOOK_MOVE_BEGIN, _eco_border_cb_hook_grab_begin, NULL);
-   if (hook) eco_border_hooks = eina_list_append(eco_border_hooks, hook);
-   hook = e_border_hook_add(E_BORDER_HOOK_MOVE_UPDATE, _eco_border_cb_hook_grab, NULL);
-   if (hook) eco_border_hooks = eina_list_append(eco_border_hooks, hook);
-   hook = e_border_hook_add(E_BORDER_HOOK_MOVE_END, _eco_border_cb_hook_ungrab, NULL);
-   if (hook) eco_border_hooks = eina_list_append(eco_border_hooks, hook);
-   hook = e_border_hook_add(E_BORDER_HOOK_RESIZE_BEGIN, _eco_border_cb_hook_grab_begin, NULL);
-   if (hook) eco_border_hooks = eina_list_append(eco_border_hooks, hook);
-   hook = e_border_hook_add(E_BORDER_HOOK_RESIZE_UPDATE, _eco_border_cb_hook_grab, NULL);
-   if (hook) eco_border_hooks = eina_list_append(eco_border_hooks, hook);
-   hook = e_border_hook_add(E_BORDER_HOOK_RESIZE_END, _eco_border_cb_hook_ungrab, NULL);
-   if (hook) eco_border_hooks = eina_list_append(eco_border_hooks, hook);
+   LIST_PUSH(hooks, e_border_hook_add(E_BORDER_HOOK_NEW_BORDER, _eco_border_cb_hook_new_border, NULL));
+   LIST_PUSH(hooks, e_border_hook_add(E_BORDER_HOOK_EVAL_PRE_NEW_BORDER, _eco_border_cb_hook_pre_new_border, NULL));
+   LIST_PUSH(hooks, e_border_hook_add(E_BORDER_HOOK_EVAL_POST_NEW_BORDER, _eco_border_cb_hook_post_new_border, NULL));
+   LIST_PUSH(hooks, e_border_hook_add(E_BORDER_HOOK_EVAL_PRE_FETCH, _eco_border_cb_hook_pre_fetch, NULL));
+   LIST_PUSH(hooks, e_border_hook_add(E_BORDER_HOOK_EVAL_POST_FETCH, _eco_border_cb_hook_post_fetch, NULL));
+   LIST_PUSH(hooks, e_border_hook_add(E_BORDER_HOOK_SET_DESK, _eco_border_cb_hook_set_desk, NULL));
+   LIST_PUSH(hooks, e_border_hook_add(E_BORDER_HOOK_MOVE_BEGIN, _eco_border_cb_hook_grab_begin, NULL));
+   LIST_PUSH(hooks, e_border_hook_add(E_BORDER_HOOK_MOVE_UPDATE, _eco_border_cb_hook_grab, NULL));
+   LIST_PUSH(hooks, e_border_hook_add(E_BORDER_HOOK_MOVE_END, _eco_border_cb_hook_ungrab, NULL));
+   LIST_PUSH(hooks, e_border_hook_add(E_BORDER_HOOK_RESIZE_BEGIN, _eco_border_cb_hook_grab_begin, NULL));
+   LIST_PUSH(hooks, e_border_hook_add(E_BORDER_HOOK_RESIZE_UPDATE, _eco_border_cb_hook_grab, NULL));
+   LIST_PUSH(hooks, e_border_hook_add(E_BORDER_HOOK_RESIZE_END, _eco_border_cb_hook_ungrab, NULL));
 
    _eco_window_icon_init();
 
@@ -162,10 +130,10 @@ eco_event_shutdown(void)
    Eina_List *l;
    E_Border *bd;
    
-   EINA_LIST_FREE (eco_handlers, h)
+   EINA_LIST_FREE (handlers, h)
      ecore_event_handler_del(h);
    
-   EINA_LIST_FREE (eco_border_hooks, hook)
+   EINA_LIST_FREE (hooks, hook)
      e_border_hook_del(hook);
 
    if (restart && evil)
@@ -622,13 +590,13 @@ _eco_borderwait_damage(E_Border *bd)
 {
   Eco_Border_Data *bdd;
 
-  LIST_DATA_BY_MEMBER_FIND(eco_borders, Eco_Border_Data, border, bd, bdd);
+  LIST_DATA_BY_MEMBER_FIND(eco_borders, border, bd, bdd);
    
   if (!bdd)
     {
       bdd = calloc(1, sizeof(Eco_Border_Data));
       bdd->border = bd;
-      eco_borders = eina_list_append(eco_borders, bdd);
+      LIST_PUSH(eco_borders, bdd);
       e_object_ref(E_OBJECT(bd));
     }
 
@@ -653,12 +621,12 @@ _eco_cb_border_remove(void *data, int ev_type, void *ev)
   E_Border *bd = e->border;
   Eco_Border_Data *bdd;
 
-  LIST_DATA_BY_MEMBER_FIND(eco_borders, Eco_Border_Data, border, bd, bdd);
+  LIST_DATA_BY_MEMBER_FIND(eco_borders, border, bd, bdd);
   if (!bdd) return 1;
 
   e_object_unref(E_OBJECT(bd));
   
-  eco_borders = eina_list_remove(eco_borders, bdd);
+  LIST_REMOVE_DATA(eco_borders, bdd);
   if (bdd->damage) ecore_x_damage_free(bdd->damage);
   if (bdd->damage_handler) ecore_event_handler_del(bdd->damage_handler);
   if (bdd->damage_timeout) ecore_timer_del(bdd->damage_timeout);
@@ -692,6 +660,8 @@ _eco_border_cb_hook_new_border(void *data, E_Border *bd)
   ecore_x_window_free(bd->win);
   e_focus_setdown(bd);
 
+  /* bd->client.argb = 1; */
+  
   if (bd->client.argb)
     bd->win = ecore_x_window_manager_argb_new(con->win, 0, 0, bd->w, bd->h);
   else
@@ -699,7 +669,7 @@ _eco_border_cb_hook_new_border(void *data, E_Border *bd)
       bd->win = ecore_x_window_override_new(con->win, 0, 0, bd->w, bd->h);
       ecore_x_window_shape_events_select(bd->win, 1);
     }
-  /* bd->win = ecore_x_window_manager_argb_new(con->win, 0, 0, bd->w, bd->h); */
+
   ecore_x_window_prop_card32_set(bd->win, ECOMORPH_ATOM_MANAGED, &(bd->client.win), 1);
    
   e_bindings_mouse_grab(E_BINDING_CONTEXT_BORDER, bd->win);
@@ -716,7 +686,6 @@ _eco_border_cb_hook_new_border(void *data, E_Border *bd)
   ecore_evas_name_class_set(bd->bg_ecore_evas, "E", "Frame_Window");
   ecore_evas_title_set(bd->bg_ecore_evas, "Enlightenment Frame");
 
-  // bd->client.shell_win = ecore_x_window_manager_argb_new(bd->win, 0, 0, 1, 1);
   if (bd->client.argb)
     bd->client.shell_win = ecore_x_window_manager_argb_new(bd->win, 0, 0, 1, 1);
   else
