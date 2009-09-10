@@ -19,7 +19,7 @@ eco_config_cube(void *data)
    ECO_CREATE_SLIDER_DOUBLE(0, inactive_opacity, "Opacity when not rotating", 0.0, 100.0, "%1.1f", 0, 2);
    ECO_CREATE_SLIDER_DOUBLE(0, fade_time, "Desktop window opacity fade time", 0.0, 10.0, "%1.1f", 0, 3);
    ECO_CREATE_CHECKBOX(0, transparent_manual_only, "Transparency only on mouse rotate", 0, 4);
-
+   ECO_CREATE_CHECKBOX(0, mipmap, "Use mipmaps for scaling", 0, 5);
    ECO_PAGE_TABLE_END;
    ECO_PAGE_END;
 
