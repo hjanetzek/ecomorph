@@ -418,6 +418,12 @@ _eco_cb_desk_show(void *data, int ev_type, void *event)
 	  bd->fx.y = (bd->desk->y - zone->desk_y_current) * zone->h;
 	  ecore_x_window_move(bd->win, bd->fx.x + bd->x, bd->fx.y + bd->y); 
 	}
+
+      /* set visible again. as we had to fake hidden state to not
+       unmap the window in desk_set border hook */
+      if (!bd->visible && (bd->desk == desk) &&
+	  !bd->iconic && !bd->shaded && !bd->changes.visible)
+	bd->visible = 1;
     }
   e_container_border_list_free(bl);
 
@@ -495,7 +501,7 @@ _eco_border_cb_hook_set_desk(void *data, E_Border *bd)
 {
   if (!bd || !bd->desk) return;
    
-  if (!(bd->desk->visible) || (bd->sticky))
+  if (!(bd->desk->visible || bd->sticky))
     bd->visible = 0;
   
   ecore_x_netwm_desktop_set(bd->win, bd->desk->x + (bd->zone->desk_x_count * bd->desk->y));
