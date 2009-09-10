@@ -423,7 +423,7 @@ _eco_cb_desk_show(void *data, int ev_type, void *event)
        unmap the window in desk_set border hook */
       if (!bd->visible && (bd->desk == desk) &&
 	  !bd->iconic && !bd->shaded && !bd->changes.visible)
-	bd->visible = 1;
+	e_border_show(bd);
     }
   e_container_border_list_free(bl);
 
