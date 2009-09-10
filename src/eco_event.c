@@ -409,8 +409,10 @@ _eco_cb_desk_show(void *data, int ev_type, void *event)
   while ((bd = e_container_border_list_next(bl)))
     {
       if (bd->moving)
-	e_border_desk_set(bd, desk);
-      else
+	{
+	  e_border_desk_set(bd, desk);
+	}
+      else if (!bd->sticky)
 	{
 	  bd->fx.x = (bd->desk->x - zone->desk_x_current) * zone->w;
 	  bd->fx.y = (bd->desk->y - zone->desk_y_current) * zone->h;
@@ -495,6 +497,8 @@ _eco_border_cb_hook_set_desk(void *data, E_Border *bd)
    
   if (!(bd->desk->visible) || (bd->sticky))
     bd->visible = 0;
+  
+  ecore_x_netwm_desktop_set(bd->win, bd->desk->x + (bd->zone->desk_x_count * bd->desk->y));
 }
 
 static int
