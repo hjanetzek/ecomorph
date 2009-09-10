@@ -64,6 +64,8 @@ static char *plugin_other[NUM_OTHER][2] =
     {"thumbnail",  "Itask-NG Thumbnails"}
   };
 
+#define NUM_FILTER 3
+static char *filters[NUM_FILTER] = {"Fast", "Good", "Best"};
 
 /* Apply Function */
 static void
@@ -135,6 +137,7 @@ eco_config_general(void *data)
   ECO_CREATE_CHECKBOX(0, detect_refresh_rate, "Autodetect refresh rate", 0, 3);
   ECO_CREATE_SLIDER_INT(0, refresh_rate, "Refresh rate", 1, 200, "%1.0f fps", 0, 4);
   ECO_CREATE_CHECKBOX(0, detect_outputs, "Autodetect outputs", 0, 5);
+  ECO_CREATE_RADIO_GROUP(0, texture_filter, "Texture Filter", filters, NUM_FILTER, 0, 6);
   /* ECO_CREATE_ENTRY(outputs, "Outputs", 0, 6); */
   ECO_PAGE_TABLE_END;
    
