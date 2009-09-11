@@ -31,15 +31,6 @@ Itask-NG:
  animation (=
  
  http://code.google.com/p/itask-module/
- 
-
-Round Window Corners:
- if you ever wanted nicely looking rounded window corners then you can
- try a hacked detour theme from, for a taste. this is still little
- fake though.
- 
- http://staff.get-e.org/~jeffdameth/detour-rounded4.edj
-
 
 once again:  
   if you get an error about missing E_BORDER_HOOK_NEW_BORDER 
