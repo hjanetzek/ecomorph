@@ -67,3 +67,6 @@ module.desktop
 e_modules-ecomorph.spec
 ], [
 ])
+
+
+cat README
