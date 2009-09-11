@@ -186,143 +186,136 @@ static int
 _eco_cb_client_message(void *data, int ev_type, void *ev)
 {
    Ecore_X_Event_Client_Message *e = ev;
-   E_Border *bd;
-  
-   if ((int)e->data.l[0] != 2) return 1;
-  
-   if (e->message_type == ECORE_X_ATOM_NET_MOVERESIZE_WINDOW)
-     { 
-	D(("0x%x :_ecomorph_cb_client_message\n", e->win));
-	D(("ECORE_X_ATOM_NET_MOVEREISZE_WINDOW %d:%d %dx%d\n", 
-	   (int)e->data.l[1], (int)e->data.l[2], (int)e->data.l[3], (int)e->data.l[4]));
-
-	bd = e_border_find_by_window(e->win);
-	if (!bd) return 1;
-
-	int x = e->data.l[1];
-	int y = e->data.l[2];
-	int dx = x / bd->zone->w;
-	int dy = y / bd->zone->h;
-      
-	/* here should always be a desk. for now move it on visible desk 
-	 */
-	if (dx < 0) dx *= -1;
-	if (dy < 0) dy *= -1;
-
-	if ((dx != bd->desk->x) || (dy != bd->desk->y))
-	  {
-	     D(("move to desk: %d:%d from %d:%d\n", dx, dy, bd->desk->x, bd->desk->y));
-	     E_Desk *desk = e_desk_at_xy_get(bd->zone, dx, dy);
-	     if (desk)
-	       {
-		  e_border_desk_set(bd, desk);
-	       }
-	  }
-
-	e_border_move(bd, MOD(x, bd->zone->w), MOD(y, bd->zone->h));
-     }
-   else if (e->message_type == ECORE_X_ATOM_NET_RESTACK_WINDOW)
-     { 
-	D(("0x%x :_ecomorph_cb_client_message\n", e->win));
-	D(("ECORE_X_ATOM_NET_RESTACK_WINDOW %d %d\n",
-	   (int)e->data.l[1], (int)e->data.l[2]));
-
-	bd = e_border_find_by_window(e->win);
-	if (!bd) return 1;
-
-	if (!bd->lock_client_stacking)
-	  {
-	     if (e->data.l[1])
-	       {
-		  E_Border *obd;
-		  Ecore_X_Window sibling = e->data.l[1];
-
-		  if (e->data.l[2] == ECORE_X_WINDOW_STACK_ABOVE)
-		    {
-		       obd = e_border_find_by_window(sibling);
-		       if (obd)
-			 e_border_stack_above(bd, obd);
-		    }
-		  else if (e->data.l[2] == ECORE_X_WINDOW_STACK_BELOW)
-		    {
-		       obd = e_border_find_by_window(sibling);
-		       if (obd)
-			 e_border_stack_below(bd, obd);
-		    }
-	       }
-	     else
-	       {
-		  if (e->data.l[2] == ECORE_X_WINDOW_STACK_ABOVE)
-		    {
-		       e_border_raise(bd);
-		    }
-		  else if (e->data.l[2] == ECORE_X_WINDOW_STACK_BELOW)
-		    {
-		       e_border_lower(bd);
-		    }
-	       }
-	  }
-     }
-   else if (e->message_type == ECORE_X_ATOM_NET_ACTIVE_WINDOW)
-     { 
-	D(("0x%x :_ecomorph_cb_client_message\n", e->win));
-	D(("ECORE_X_ATOM_NET_ACTIVE_WINDOW\n"));
-	bd = e_border_find_by_window(e->win);
-	if (!bd) return 1;
-      
-	if (bd->desk !=  e_desk_current_get(bd->zone))
-	  e_desk_show(bd->desk);
-
-	if (bd->shaded)
-	  e_border_unshade(bd, E_DIRECTION_UP);
-      
-	if (bd->iconic)
-	  e_border_uniconify(bd);
-      
-	e_border_raise(bd);
-      
-	e_border_focus_set(bd, 1, 1);
-
-     }
-   else if (e->message_type == ECORE_X_ATOM_NET_DESKTOP_VIEWPORT)
-     { 
-	D(("0x%x :_ecomorph_cb_client_message\n", e->win));
-	D(("ECORE_X_ATOM_NET_DESKTOP_VIEWPORT %d %d %d\n",
-	   (int)e->data.l[1], (int)e->data.l[2], (int)e->data.l[3]));
-
-	E_Manager *man = e_manager_current_get();
-
-	if (e->win == man->root)
-	  { 
-	     E_Zone *zone = e_util_zone_current_get(man); 
-	     int dx = (int)e->data.l[1];
-	     int dy = (int)e->data.l[2];
+   int type = e->data.l[0];
      
-	     if (e_desk_current_get(zone) != e_desk_at_xy_get(zone, dx, dy))
-	       {
-		  e_zone_desk_flip_to(zone, dx, dy);
-	       }
-	  }
-     }
-   else if (e->message_type == ECOMORPH_ATOM_MANAGED)
+   if (e->message_type != ECOMORPH_ATOM_MANAGED)
+     return 1;
+     
+   if (type < 100)
+     return 1;
+
+   /* printf("ecomp event %d -- %d %d %d %d\n", type, 
+    * 	  e->data.l[1], e->data.l[2],
+    * 	  e->data.l[3], e->data.l[4]); */
+   
+   switch(type)
      {
-        int type = (int)e->data.l[1];
-	int val =(int) e->data.l[2];
+     case ECOMORPH_ECOMP_PLUGIN_END:
+       eco_action_terminate();
+       break;
+	    
+     case ECOMORPH_ECOMP_WINDOW_MOVE:
+       {
+	 E_Border* bd;
+	 E_Desk *desk;
+	 int x, y, dx ,dy;
 
-	printf("ecomp event %d %d\n", type, val);
-	
-	switch(type)
-	  {
-	  case ECOMORPH_ECOMP_PLUGIN_END:
-	    eco_action_terminate();
-	    break;
-	  case ECOMORPH_ECOMP_WINDOW_MOVE:
-	    break;
-	  default:	     
-	    break;
-	  }
+	 if (!(bd = e_border_find_by_window(e->win)))
+	   break;
+
+	 x = e->data.l[1];
+	 y = e->data.l[2];
+
+	 dx = x / bd->zone->w;
+	 dy = y / bd->zone->h;
+	 
+	 /* remove. here should always be a desk.. */
+	 if (dx < 0) dx *= -1;
+	 if (dy < 0) dy *= -1;
+
+	 if ((dx != bd->desk->x) || (dy != bd->desk->y))
+	   {
+	     if ((desk = e_desk_at_xy_get(bd->zone, dx, dy)))
+	       e_border_desk_set(bd, desk);
+	   }
+
+	 e_border_move(bd, MOD(x, bd->zone->w), MOD(y, bd->zone->h));
+	 break;
+       }
+     case ECOMORPH_ECOMP_WINDOW_STACKING:
+       {
+	 Ecore_X_Window sibling = e->data.l[2];
+	 int stacking = e->data.l[1];
+	 E_Border* bd;
+	 
+	 if (!(bd = e_border_find_by_window(e->win)))
+	   break;
+
+	 if (bd->lock_client_stacking)
+	   break;
+	 
+	 if (sibling)
+	   {
+	     E_Border *obd;
+
+	     if (stacking == ECORE_X_WINDOW_STACK_ABOVE)
+	       {
+		 obd = e_border_find_by_window(sibling);
+		 if (obd) e_border_stack_above(bd, obd);
+	       }
+	     else if (stacking == ECORE_X_WINDOW_STACK_BELOW)
+	       {
+		 obd = e_border_find_by_window(sibling);
+		 if (obd) e_border_stack_below(bd, obd);
+	       }
+	   }
+	 else
+	   {
+	     if (stacking == ECORE_X_WINDOW_STACK_ABOVE)
+	       {
+		 e_border_raise(bd);
+	       }
+	     else if (stacking == ECORE_X_WINDOW_STACK_BELOW)
+	       {
+		 e_border_lower(bd);
+	       }
+
+	   }
+	 break;
+       }
+     case ECOMORPH_ECOMP_WINDOW_ACTIVATE:
+       {	 
+	 E_Border* bd;
+	 
+	 if (!(bd = e_border_find_by_window(e->win)))
+	   break;
+
+	 if (bd->desk != e_desk_current_get(bd->zone))
+	   e_desk_show(bd->desk);
+
+	 if (bd->shaded)
+	   e_border_unshade(bd, E_DIRECTION_UP);
+      
+	 if (bd->iconic)
+	   e_border_uniconify(bd);
+      
+	 e_border_raise(bd);
+	 e_border_focus_set(bd, 1, 1);	    
+	 break;
+       }
+     case ECOMORPH_ECOMP_VIEWPORT:
+       {
+	 E_Manager *man = e_manager_current_get();
+	 E_Zone *zone;
+	 int dx, dy;
+	 
+	 if (e->win != man->root)
+	   break;
+
+	 zone = e_util_zone_current_get(man); 
+	 dx = e->data.l[1];
+	 dy = e->data.l[2];
+     
+	 if (e_desk_current_get(zone) == e_desk_at_xy_get(zone, dx, dy))
+	   break;
+	 
+	 e_zone_desk_flip_to(zone, dx, dy);
+	 break;
+       }
+     default:	     
+       break;
      }
-
+   
    return 1;
 }
 
@@ -670,7 +663,7 @@ _eco_border_cb_hook_new_border(void *data, E_Border *bd)
   ecore_x_window_free(bd->win);
   e_focus_setdown(bd);
 
-  /* bd->client.argb = 1; */
+  bd->client.argb = 1;
   
   if (bd->client.argb)
     bd->win = ecore_x_window_manager_argb_new(con->win, 0, 0, bd->w, bd->h);

@@ -109,19 +109,13 @@ eco_action_terminate(void) /* TODO add arg if message should be send
 			      or if we just update state from ecomp */
 {
    Ecore_Event_Handler *h;
-   printf("action terminate\n");
-   
+
    if (act_handlers)
      {
-	printf("action terminate 2\n");
         hold_count = 0;
 	hold_mod = 0;
 	EINA_LIST_FREE(act_handlers, h)
-	  {
-	     printf("del handler\n");
-	     
-	     ecore_event_handler_del(h);
-	  }
+	  ecore_event_handler_del(h);
 	
 	e_grabinput_release(input_window, input_window);
 	ecore_x_window_free(input_window);
@@ -244,7 +238,6 @@ static int
 _eco_cb_mouse_wheel(void *data, int type, void *event)
 {
    Ecore_Event_Mouse_Wheel *ev = event;
-   printf("mouse wheel\n");
    
    eco_action.action = ECO_ACT_CYCLE;
    
@@ -382,7 +375,6 @@ static int
 _eco_cb_key_up(void *data, int type, void *event)
 {
    Ecore_Event_Key *ev = event;
-   /* printf("key up\n"); */
    
    if (!(act_handlers)) return 1;
 
@@ -407,7 +399,6 @@ _eco_cb_key_up(void *data, int type, void *event)
 
       if (hold_count <= 0)
       {
-	/* printf("key up terminate\n"); */
 	 eco_action_terminate();
          _eco_plugin_message_send();
       }
@@ -420,7 +411,7 @@ _eco_cb_go_action(E_Object *obj, const char *params)
 {
    Eina_List *l;
    E_Config_Binding_Edge *bi;
-   /* printf("go action\n"); */   
+
    for (l = e_config->edge_bindings; l; l = l->next)
      {
 	bi = l->data;
@@ -437,14 +428,12 @@ _eco_cb_go_action(E_Object *obj, const char *params)
 static void
 _eco_cb_key_action(E_Object *obj, const char *params, Ecore_Event_Key *ev)
 {
-  /* printf("key action\n"); */
    _eco_cb_action(obj, params, ev->modifiers);
 }
 
 static void 
 _eco_cb_mouse_action(E_Object *obj, const char *params, Ecore_Event_Mouse_Button *ev)
 {
-  /* printf("mouse action\n"); */
    _eco_cb_action(obj, params, ev->modifiers);
    eco_action.ignore_mouse_event = 2;
 }

@@ -8,6 +8,7 @@
 
 #define _(str) dgettext(PACKAGE, str)
 
+/* events sent to ecomp */
 #define ECOMORPH_EVENT_MAPPED       0
 #define ECOMORPH_EVENT_STATE        1
 #define ECOMORPH_EVENT_DESK         2
@@ -16,8 +17,15 @@
 #define ECOMORPH_EVENT_MOVE         5
 #define ECOMORPH_EVENT_MOVE_RESIZE  6
 #define ECOMORPH_EVENT_FOCUS        7
-#define ECOMORPH_ECOMP_WINDOW_MOVE  100
-#define ECOMORPH_ECOMP_PLUGIN_END   200
+
+/* events sent from ecomp */
+#define ECOMORPH_ECOMP_WINDOW_MOVE      100
+#define ECOMORPH_ECOMP_WINDOW_ACTIVATE  101
+#define ECOMORPH_ECOMP_WINDOW_STACKING  102
+#define ECOMORPH_ECOMP_VIEWPORT         200
+#define ECOMORPH_ECOMP_PLUGIN_END       210
+
+
 #define ECOMORPH_WINDOW_STATE_INVISIBLE 0
 #define ECOMORPH_WINDOW_STATE_VISIBLE 1
 
