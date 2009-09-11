@@ -42,4 +42,5 @@ Round Window Corners:
 
 
 once again:  
-  0. INSTALL THE LASTEST E FROM SVN 
+  if you get an error about missing E_BORDER_HOOK_NEW_BORDER 
+  -> install the latest e from svn! 
