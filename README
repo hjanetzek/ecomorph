@@ -1,19 +1,23 @@
+
 Ecomorph is a compositing manager for e17. It consists of the ecomorph
-module and ecomp. ecomp is based on compiz 0.6.
+module for e17 and ecomp. ecomp is based on compiz 0.6.
 
 0. install the latest e from svn (yes, important!)
 1. install ecomp, from http://github.com/jeffdameth/ecomp/tree/master
 2. install ecomorph module.. from there where this REAME file comes from 
-3. run ecomorph.sh
-4. load ecomorph module
-5. activate ecomorph mode under 
-   -> settings -> ecomorph
-   click apply
+3. load ecomorph module
+4. in main menu -> settings choose ecomorph
+5. click 'start ecomp'
+5. activate ecomorph mode
+6. click apply
 
-6. if everything works well you can log out 
+7. if everything works well you can log out 
     and start ecomorph.sh + ecomorph-mode
     via "ecomorph - e17 session"
 
+see also:
+ http://code.google.com/p/itask-module/wiki/Stuff
+ http://code.google.com/p/itask-module/wiki/EcomorphFaq
 
 Requiered packages for building on debian/ubuntu:
  git-core automake intltool libtool 
@@ -22,16 +26,12 @@ Requiered packages for building on debian/ubuntu:
  libglu1-mesa-dev libxml2-dev 
  libxslt1 libxslt1-dev libdbus-1-dev 
 
-Suggestion for Matching Rules
- Dropshadow: type=any & !(type=dock | utility | unknown)
-
 Itask-NG:
  with itask-ng the minimize animation zooms to the bar icon when
- 'ecomorph features' are enabled. try it with magic lamp minimize
- animation (=
- 
+ 'ecomorph features' are enabled.
  http://code.google.com/p/itask-module/
 
+__________________________________________________________________________
 once again:  
   if you get an error about missing E_BORDER_HOOK_NEW_BORDER 
   -> install the latest e from svn! 
