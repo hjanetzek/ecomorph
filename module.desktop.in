@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Link
 Name=Ecomorph
-Icon=e-module-skel
-Comment=<title>Skeleton Module Gadget:</title><br>Not meant for users. Basis for building new ones.
+Icon=e-module-ecomorph
+Comment=Ecomorph Module
 #Several different types available here. NEED TO DOC THESE.
 X-Enlightenment-ModuleType=system
