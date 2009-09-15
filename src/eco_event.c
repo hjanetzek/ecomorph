@@ -32,15 +32,15 @@ static int  _eco_cb_border_desk_set(void *data, int ev_type, void *ev);
 static int  _eco_cb_border_focus(void *data, int ev_type, void *ev);
 static int  _eco_cb_desk_show(void *data, int ev_type, void *ev);
 
-static void _eco_border_cb_hook_new_border(void *data, E_Border *bd);
-static void _eco_border_cb_hook_pre_new_border(void *data, E_Border *bd);
-static void _eco_border_cb_hook_post_new_border(void *data, E_Border *bd);
-static void _eco_border_cb_hook_pre_fetch(void *data, E_Border *bd);
-static void _eco_border_cb_hook_post_fetch(void *data, E_Border *bd);
-static void _eco_border_cb_hook_set_desk(void *data, E_Border *bd);
-static void _eco_border_cb_hook_grab(void *data, E_Border *bd);
-static void _eco_border_cb_hook_grab_begin(void *data, E_Border *bd);
-static void _eco_border_cb_hook_ungrab(void *data, E_Border *bd);
+static void _eco_border_cb_hook_new_border(void *data, void *bd);
+static void _eco_border_cb_hook_pre_new_border(void *data, void *bd);
+static void _eco_border_cb_hook_post_new_border(void *data, void *bd);
+static void _eco_border_cb_hook_pre_fetch(void *data, void *bd);
+static void _eco_border_cb_hook_post_fetch(void *data, void *bd);
+static void _eco_border_cb_hook_set_desk(void *data, void *bd);
+static void _eco_border_cb_hook_grab(void *data, void *bd);
+static void _eco_border_cb_hook_grab_begin(void *data, void *bd);
+static void _eco_border_cb_hook_ungrab(void *data, void *bd);
 
 static void _eco_message_send(Ecore_X_Window win, long l1, long l2, long l3, long l4, long l5);
 static void _eco_message_root_send(Ecore_X_Atom atom, long l1, long l2, long l3, long l4, long l5);
@@ -452,8 +452,10 @@ _eco_cb_border_focus(void *data, int ev_type, void *event)
 
 
 static void
-_eco_border_cb_hook_grab_begin(void *data, E_Border *bd)
+_eco_border_cb_hook_grab_begin(void *data, void *border)
 {
+  E_Border *bd = border;
+  
   if (border_moveresize_active)
     _eco_border_cb_hook_ungrab(NULL, bd);
 
@@ -465,8 +467,10 @@ _eco_border_cb_hook_grab_begin(void *data, E_Border *bd)
 }
 
 static void
-_eco_border_cb_hook_grab(void *data, E_Border *bd)
+_eco_border_cb_hook_grab(void *data, void *border)
 {
+  E_Border *bd = border;
+  
   if (border_moveresize_active == 1)
     {
       border_moveresize_active++;
@@ -482,16 +486,20 @@ _eco_border_cb_hook_grab(void *data, E_Border *bd)
 }
 
 static void
-_eco_border_cb_hook_ungrab(void *data, E_Border *bd)
+_eco_border_cb_hook_ungrab(void *data, void *border)
 {
+  E_Border *bd = border;
+  
   border_moveresize_active = 0;
 
   _eco_message_send(bd->win, ECOMORPH_EVENT_GRAB, 0, 0, 0, 0);
 }
 
 static void
-_eco_border_cb_hook_set_desk(void *data, E_Border *bd)
+_eco_border_cb_hook_set_desk(void *data, void *border)
 {
+  E_Border *bd = border;
+  
   if (!bd || !bd->desk) return;
    
   if (!(bd->desk->visible || bd->sticky))
@@ -651,8 +659,9 @@ _eco_cb_border_show(void *data, int ev_type, void *ev)
 }
 
 static void
-_eco_border_cb_hook_new_border(void *data, E_Border *bd)
+_eco_border_cb_hook_new_border(void *data, void *border)
 {
+  E_Border *bd = border;
   E_Container *con = bd->zone->container;
 
   e_canvas_del(bd->bg_ecore_evas);
@@ -702,8 +711,10 @@ _eco_border_cb_hook_new_border(void *data, E_Border *bd)
 #define MOD(a,b) ((a) < 0 ? ((b) - ((-(a) - 1) % (b))) - 1 : (a) % (b))
 
 static void
-_eco_border_cb_hook_pre_new_border(void *data, E_Border *bd)
+_eco_border_cb_hook_pre_new_border(void *data, void *border)
 {
+  E_Border *bd = border;
+  
   if (bd->new_client)
     {
       E_Zone *zone = bd->zone;
@@ -725,8 +736,9 @@ _eco_border_cb_hook_pre_new_border(void *data, E_Border *bd)
 }
 
 static void
-_eco_border_cb_hook_post_new_border(void *data, E_Border *bd)
+_eco_border_cb_hook_post_new_border(void *data, void *border)
 {
+  E_Border *bd = border;
   E_Zone *zone = bd->zone;
   
   if (bd->new_client && bd->client.icccm.request_pos)
@@ -749,8 +761,10 @@ _eco_border_cb_hook_post_new_border(void *data, E_Border *bd)
 }
 
 static void
-_eco_border_cb_hook_pre_fetch(void *data, E_Border *bd)
+_eco_border_cb_hook_pre_fetch(void *data, void *border)
 {
+  E_Border *bd = border;
+  
   if (bd->client.icccm.fetch.title)
     _eco_border_changes_title = 1;
   if (bd->client.netwm.fetch.name)
@@ -764,8 +778,10 @@ _eco_border_cb_hook_pre_fetch(void *data, E_Border *bd)
 }
 
 static void
-_eco_border_cb_hook_post_fetch(void *data, E_Border *bd)
+_eco_border_cb_hook_post_fetch(void *data, void *border)
 {
+  E_Border *bd = border;
+  
   if (_eco_border_changes_title)
     {
       if(bd->client.icccm.title)

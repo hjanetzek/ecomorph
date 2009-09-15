@@ -32,6 +32,9 @@ Itask-NG:
  http://code.google.com/p/itask-module/
 
 __________________________________________________________________________
+consider rm ~/.ecomp as the old defaults might have some values missing
+
 once again:  
   if you get an error about missing E_BORDER_HOOK_NEW_BORDER 
   -> install the latest e from svn! 
+

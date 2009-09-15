@@ -14,16 +14,14 @@ static Eco_Option *opt_active_plugins;
  *     "water", "zoom", "blur", "mblur" 
  *   }; */
 
-#define NUM_BASE 7
+#define NUM_BASE 6
 static int active_base[NUM_BASE];
 static char *plugin_base[NUM_BASE][2] =
   {
     {"ini",        "Ini"},
     {"inotify",    "Inotify"},
-    /* {"dbus",       "DBus"}, */
     {"text",       "Text"},
     {"regex",      "Regex"},
-    {"png",        "PNG"},
     {"decoration", "Decoration"},
     {"move",       "Move"}
   };
