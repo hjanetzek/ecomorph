@@ -1,6 +1,5 @@
 #!/bin/sh
-ecomorph.sh &
-sleep 1
+ecomp.sh &
 enlightenment_start -evil
 
 #xterm
