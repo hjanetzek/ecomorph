@@ -435,7 +435,7 @@ _eco_check_ecomorph(void *data)
 static void
 _eco_start_ecomorph(void *data, void *data2)
 {
-   ecore_exe_run("xterm -hold -e ecomorph.sh", NULL);
+   ecore_exe_run("xterm -hold -e ecomp.sh", NULL);
 }
 
 static void
