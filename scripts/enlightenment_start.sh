@@ -1,5 +1,6 @@
 #!/bin/sh
 ecomp.sh &
-enlightenment_start -evil
+mkdir -p ~/.ecomp/run_ecomorph
+enlightenment_start
 
 #xterm

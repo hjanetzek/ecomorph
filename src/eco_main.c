@@ -38,7 +38,6 @@ EAPI void *
 e_modapi_init(E_Module *m)
 {
    char buf[PATH_MAX];
-   char *mode = getenv("E_ECOMORPH");
    
    /* Location of message catalogs for localization */
    snprintf(buf, sizeof(buf), "%s/locale", e_module_dir_get(m));
@@ -92,17 +91,12 @@ e_modapi_init(E_Module *m)
      (e_container_current_get(e_manager_current_get())->bg_win,
       ECORE_X_WINDOW_TYPE_DESKTOP);
 
-   /* ecore_timer_add(1.0, _e_main_cb_after_restart, NULL); */
 
-   if (mode)
-     evil = atoi(mode);
+   snprintf(buf, sizeof(buf), "%s/%s", e_user_homedir_get(), ".ecomp/run_ecomorph");
+   evil = (ecore_file_exists(buf) ? 1 : 0);
    
    if (evil)
      {
-       printf("it's going be evil!\n");
-       
-       e_util_env_set("E_ECOMORPH", "1");
-
        eco_actions_create();
        eco_event_init();
        e_config->desk_flip_animate_mode = -1;

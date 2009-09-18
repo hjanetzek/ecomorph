@@ -58,13 +58,17 @@ eco_config_file_open()
       snprintf(file_path, 2048, "%s/%s", e_user_homedir_get(), ".ecomp/ecomp.eet");
       if (!ecore_file_exists(file_path))
 	{
+	  snprintf(file_path, 2048, "%s/%s", e_user_homedir_get(), ".ecomp/");
+	  ecore_file_mkdir(file_path);
+
 	  char *file_src[] =
 	    {
 	      "/usr/local/share/ecomp/ecomp.eet",
 	      "/usr/share/ecomp/ecomp.eet",
 	      "/opt/e17/share/ecomp/ecomp.eet"
 	    };
-	  
+
+	  snprintf(file_path, 2048, "%s/%s", e_user_homedir_get(), ".ecomp/ecomp.eet");
 	  if (ecore_file_exists(file_src[0]))
 	    ecore_file_cp(file_src[0], file_path);
 	  else if (ecore_file_exists(file_src[1]))
@@ -638,41 +642,51 @@ static int
 _basic_apply_data(E_Config_Dialog *cfd, E_Config_Dialog_Data *cfdata)
 {
    if (_eco_apply_func) _eco_apply_func(cfdata);
-
+   char state_file[1024];
+   
    e_config->use_composite = cfdata->use_composite;
    e_config_save_queue();
 
-   if (evil != cfdata->ecomorph)
-   {      
-      E_Action *a;
-      evil = cfdata->ecomorph;
+   E_Action *a;
 
-      if (!evil)
-      	{
-      	   Eina_List *l;
-      	   E_Border *bd;
+   if (cfdata->ecomorph != evil)
+     {
+	evil = cfdata->ecomorph;
+	
+	if (!evil)
+	  {
+	     Eina_List *l;
+	     E_Border *bd;
       
-      	   EINA_LIST_FOREACH(e_border_client_list(), l, bd)
-      	     {
-      		bd->changed = 1;
-      		bd->changes.pos = 1;
-      		bd->fx.x = 0;
-      		bd->fx.y = 0;
+	     EINA_LIST_FOREACH(e_border_client_list(), l, bd)
+	       {
+		  bd->changed = 1;
+		  bd->changes.pos = 1;
+		  bd->fx.x = 0;
+		  bd->fx.y = 0;
       		
-      		ecore_x_window_move(bd->win, bd->x, bd->y);
-      	     }
+		  ecore_x_window_move(bd->win, bd->x, bd->y);
+	       }
       
-      	   eco_actions_free();
-      	   eco_event_shutdown();
+	     eco_actions_free();
+	     eco_event_shutdown();
       
-      	   e_config->desk_flip_animate_mode = 0;
-      	}
+	     e_config->desk_flip_animate_mode = 0;
 
-      e_util_env_set("E_ECOMORPH", evil ? "1" : "0");
-      a = e_action_find("restart");
-      if ((a) && (a->func.go)) a->func.go(NULL, NULL);
-   }
+	     e_config_save();
+	  }
+      
+	snprintf(state_file, sizeof(state_file), "%s/%s", e_user_homedir_get(), ".ecomp/run_ecomorph");
+	if (evil)
+	  ecore_file_mkdir(state_file);
+	else
+	  ecore_file_rmdir(state_file);
 
+	/* e_util_env_set("E_ECOMORPH", evil ? "1" : "0"); */
+	a = e_action_find("restart");
+	if ((a) && (a->func.go)) a->func.go(NULL, NULL);
+     }
+   
    return 1;
 }
 
