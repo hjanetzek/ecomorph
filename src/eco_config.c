@@ -201,12 +201,9 @@ eco_config_option_get(Eco_Group *group, const char *option)
   Eco_Option *opt;
   if (!(opt = eina_hash_find(group->data, option)))
     {
-      printf("create option %s\n", option);
       opt = calloc (1, sizeof(Eco_Option));      
       eina_hash_add(group->data, option, opt);
     }
-  else
-    printf("got option %s\n", option);
 
   return opt;  
 }
@@ -217,12 +214,9 @@ eco_config_option_list_nth(Eco_Group *group, const char *option, int num)
   Eco_Option *opt;
   if (!(opt = eina_hash_find(group->data, option)))
     {
-      printf("create option %s\n", option);
       opt = calloc (1, sizeof(Eco_Option));      
       eina_hash_add(group->data, option, opt);
     }
-  else
-    printf("got option %s\n", option);
 
   return eina_list_nth(opt->listValue, num);
 }
@@ -584,21 +578,20 @@ e_int_config_eco(E_Container *con, const char *params)
    E_Config_Dialog *cfd;
    E_Config_Dialog_View *v;
 
-   if (e_config_dialog_find("E", "_config_eco_dialog")) return NULL;
+   if (e_config_dialog_find("E", "appearance/eco")) return NULL;
    v = E_NEW(E_Config_Dialog_View, 1);
    if (!v) return NULL;
    v->create_cfdata = _create_data;
    v->free_cfdata = _free_data;
    v->basic.apply_cfdata = _basic_apply_data;
    v->basic.create_widgets = _basic_create_widgets;
-   printf("eco config dialog \n");
    
    eco_config_file_open();
    cfg_screen = NULL;
    cfg_display = NULL;
    
    cfd = e_config_dialog_new(con, _("Ecomorph Configuration"),
-                             "E", "_config_eco_dialog",
+                             "E", "appearance/eco",
                              edje_file, 0, v, NULL);
 
    e_win_resize(cfd->dia->win, 820, 720);
