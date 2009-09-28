@@ -373,7 +373,12 @@ _eco_cb_desk_show(void *data, int ev_type, void *event)
     {
       if ((!bd->desk->visible) && (!bd->sticky))
 	e_container_shape_hide(bd->shape);
-	   	   
+      else
+	{
+	  e_container_shape_move(bd->shape, bd->x, bd->y);
+	  e_container_shape_show(bd->shape);
+	}
+      
       if (bd->moving) bd2 = bd;
     }
 
