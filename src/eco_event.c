@@ -418,6 +418,12 @@ _eco_cb_desk_show(void *data, int ev_type, void *event)
 	  bd->fx.x = (bd->desk->x - zone->desk_x_current) * zone->w;
 	  bd->fx.y = (bd->desk->y - zone->desk_y_current) * zone->h;
 	  ecore_x_window_move(bd->win, bd->fx.x + bd->x, bd->fx.y + bd->y); 
+
+	  ecore_x_icccm_move_resize_send(bd->client.win,
+					 bd->x + bd->fx.x + bd->client_inset.l,
+					 bd->y + bd->fx.y + bd->client_inset.t,
+					 bd->client.w,
+					 bd->client.h);
 	}
 
       /* set visible again. as we had to fake hidden state to not
@@ -528,6 +534,12 @@ _eco_cb_border_desk_set(void *data, int ev_type, void *event)
 
   ecore_x_window_move(bd->win, bd->fx.x + bd->x, bd->fx.y + bd->y); 	
 
+  ecore_x_icccm_move_resize_send(bd->client.win,
+				 bd->x + bd->fx.x + bd->client_inset.l,
+				 bd->y + bd->fx.y + bd->client_inset.t,
+				 bd->client.w,
+				 bd->client.h);
+  
   _eco_message_send(bd->win, ECOMORPH_EVENT_DESK,
 		    0, bd->desk->x, bd->desk->y, bd->moving);
    
