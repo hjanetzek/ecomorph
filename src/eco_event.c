@@ -372,7 +372,10 @@ _eco_cb_desk_show(void *data, int ev_type, void *event)
   EINA_LIST_FOREACH(e_border_client_list(), l, bd)
     {
       if ((!bd->desk->visible) && (!bd->sticky))
-	e_container_shape_hide(bd->shape);
+	{
+	  bd->visible = 0;
+	  e_container_shape_hide(bd->shape);
+	}
       else
 	{
 	  e_container_shape_move(bd->shape, bd->x, bd->y);
