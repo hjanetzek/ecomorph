@@ -129,8 +129,25 @@ e_modapi_shutdown(E_Module *m)
        eco_actions_free();
        eco_event_shutdown();
 
-       
        e_config->desk_flip_animate_mode = 0;
+
+       /* module is unloaded via gui */
+       /* FIXME got to restart e after unloading the module anyway */
+       /* if (!stopping)
+        * 	 {
+        * 	   Eina_List *l;
+        * 	   E_Border *bd;
+        * 
+        * 	   EINA_LIST_FOREACH(e_border_client_list(), l, bd)
+        * 	     {
+        * 	       bd->changed = 1;
+        * 	       bd->changes.pos = 1;
+        * 	       bd->fx.x = 0;
+        * 	       bd->fx.y = 0;
+        * 		
+        * 	       ecore_x_window_move(bd->win, bd->x, bd->y);
+        * 	     }
+        * 	 } */
      }
    
    conf_module = NULL;
