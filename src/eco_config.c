@@ -686,7 +686,7 @@ _basic_apply_data(E_Config_Dialog *cfd, E_Config_Dialog_Data *cfdata)
 static Evas_Object *
 _basic_create_widgets(E_Config_Dialog *cfd, Evas *evas, E_Config_Dialog_Data *cfdata)
 {
-   Evas_Object *o, *ob, *of, *sf, *list;
+  Evas_Object *o, *ob, *of, *sf, *list, *ol;
    Eina_List *l;
    int engine;
 
@@ -695,38 +695,45 @@ _basic_create_widgets(E_Config_Dialog *cfd, Evas *evas, E_Config_Dialog_Data *cf
    dialog_data->o_content = NULL;
    o = e_widget_list_add(evas, 0, 1);
 
+   ol = e_widget_list_add(evas, 0, 0);
+      
+   of = e_widget_frametable_add(evas, _("Ecomorph"), 0);
+
+   //e configs
+   /* ob = e_widget_check_add(evas, _("Enable Composite"),
+    *                         &(cfdata->use_composite));
+    * e_widget_frametable_object_append(of, ob, 0, 1, 2, 1, 1, 0, 0, 0); */
+   
+   ob = e_widget_check_add(evas, _("Ecomorph Mode"),
+                           &(cfdata->ecomorph));
+   e_widget_frametable_object_append(of, ob, 0, 0, 2, 1, 1, 0, 0, 0);
+   
+   ob = e_widget_button_add(evas, _("Start Ecomp"), NULL,
+                            _eco_start_ecomorph, NULL, NULL);
+   e_widget_frametable_object_append(of, ob, 0, 1, 1, 1, 1, 0, 0, 0);
+   e_widget_disabled_set(ob, 1);
+   cfdata->o_start = ob;
+   
+   ob = e_widget_button_add(evas, _("Stop Ecomp"), NULL,
+                            _eco_stop_ecomorph, NULL, NULL);
+   e_widget_frametable_object_append(of, ob, 1, 1, 1, 1, 1, 0, 0, 0);
+   e_widget_disabled_set(ob, 1);
+   cfdata->o_stop = ob;
+
+   e_widget_list_object_append(ol, of, 1, 0, 0.0);
+
    /* Plugins Frame */
    of = e_widget_frametable_add(evas, _("Plugins"), 0);
 
    //list
    ob = e_widget_ilist_add(evas, 32, 32, NULL);
    e_widget_size_min_set(ob, 200, 330);
-   e_widget_frametable_object_append(of, ob, 0, 0, 2, 1, 1, 1, 1, 1);
+   e_widget_frametable_object_append(of, ob, 0, 0, 1, 1, 1, 1, 1, 1);
    eco_list_populate(ob);
    list = ob;
+   e_widget_list_object_append(ol, of, 1, 1, 0.0);
    
-   //e configs
-   ob = e_widget_check_add(evas, _("Enable Composite"),
-                           &(cfdata->use_composite));
-   e_widget_frametable_object_append(of, ob, 0, 1, 2, 1, 1, 0, 0, 0);
-   
-   ob = e_widget_check_add(evas, _("Ecomorph Mode"),
-                           &(cfdata->ecomorph));
-   e_widget_frametable_object_append(of, ob, 0, 2, 2, 1, 1, 0, 0, 0);
-   
-   ob = e_widget_button_add(evas, _("Start Ecomp"), NULL,
-                            _eco_start_ecomorph, NULL, NULL);
-   e_widget_frametable_object_append(of, ob, 0, 3, 1, 1, 1, 0, 0, 0);
-   e_widget_disabled_set(ob, 1);
-   cfdata->o_start = ob;
-   
-   ob = e_widget_button_add(evas, _("Stop Ecomp"), NULL,
-                            _eco_stop_ecomorph, NULL, NULL);
-   e_widget_frametable_object_append(of, ob, 1, 3, 1, 1, 1, 0, 0, 0);
-   e_widget_disabled_set(ob, 1);
-   cfdata->o_stop = ob;
-
-   e_widget_list_object_append(o, of, 1, 0, 0.0);
+   e_widget_list_object_append(o, ol, 1, 0, 0.0);
 
    //widget container
    dialog_data->o_container = e_widget_add(evas);
