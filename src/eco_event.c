@@ -216,20 +216,32 @@ _eco_cb_client_message(void *data, int ev_type, void *ev)
 	 x = e->data.l[1];
 	 y = e->data.l[2];
 
-	 dx = x / bd->zone->w;
-	 dy = y / bd->zone->h;
-	 
-	 /* remove. here should always be a desk.. */
-	 if (dx < 0) dx *= -1;
-	 if (dy < 0) dy *= -1;
-
-	 if ((dx != bd->desk->x) || (dy != bd->desk->y))
+	 if (e->data.l[3])
 	   {
-	     if ((desk = e_desk_at_xy_get(bd->zone, dx, dy)))
-	       e_border_desk_set(bd, desk);
+	     e_desk_xy_get(e_desk_current_get(bd->zone), &dx, &dy);
+	     dx *= bd->zone->w;
+	     dy *= bd->zone->h;
+	     
+	     e_border_move(bd, x - dx, y - dy);
 	   }
+	 else
+	   {
+	     dx = x / bd->zone->w;
+	     dy = y / bd->zone->h;
+	 
+	     /* remove. here should always be a desk.. */
+	     if (dx < 0) dx *= -1;
+	     if (dy < 0) dy *= -1;
 
-	 e_border_move(bd, MOD(x, bd->zone->w), MOD(y, bd->zone->h));
+	     if ((dx != bd->desk->x) || (dy != bd->desk->y))
+	       {
+		 if ((desk = e_desk_at_xy_get(bd->zone, dx, dy)))
+		   e_border_desk_set(bd, desk);
+	       }
+
+	     e_border_move(bd, MOD(x, bd->zone->w), MOD(y, bd->zone->h));
+	   }
+	 
 	 break;
        }
      case ECOMORPH_ECOMP_WINDOW_STACKING:
