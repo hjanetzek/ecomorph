@@ -53,12 +53,12 @@ static char *plugin_other[NUM_OTHER][2] =
     {"expo",       "Expo Pager"},
     {"animation",  "Window Animations"},
     {"scaleaddon", "Scale Addons"},
-    {"water",      "Water Effect"},
-    {"zoom",       "Manual Zoom"},
+    {"water",      "Water (experimental)"},
+    {"zoom",       "Zoom (experimental)"},
     {"blur",       "Blur Windows"},
     {"mblur",      "Motion Blur"},
-    {"wobbly",     "Wobbly Windows"},   
-    {"cubereflex",     "Cube Reflexions"},
+    {"wobbly",     "Wobbly (experimental)"},   
+    {"cubereflex", "Cube Reflexions"},
     {"thumbnail",  "Itask-NG Thumbnails"}
   };
 
