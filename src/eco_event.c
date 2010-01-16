@@ -386,12 +386,12 @@ _eco_cb_desk_show(void *data, int ev_type, void *event)
       if ((!bd->desk->visible) && (!bd->sticky))
 	{
 	  bd->visible = 0;
-	  e_container_shape_hide(bd->shape);
+	  //  e_container_shape_hide(bd->shape);
 	}
       else
 	{
-	  e_container_shape_move(bd->shape, bd->x, bd->y);
-	  e_container_shape_show(bd->shape);
+	  ;//e_container_shape_move(bd->shape, bd->x, bd->y);
+	  //e_container_shape_show(bd->shape);
 	}
       
       if (bd->moving) bd2 = bd;
@@ -694,7 +694,7 @@ static void
 _eco_border_cb_hook_new_border(void *data, void *border)
 {
   E_Border *bd = border;
-  E_Container *con = bd->zone->container;
+  E_Container *con = e_container_current_get(e_manager_current_get());
 
   e_canvas_del(bd->bg_ecore_evas);
   ecore_evas_free(bd->bg_ecore_evas);
