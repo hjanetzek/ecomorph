@@ -254,7 +254,9 @@ _eco_cb_mouse_wheel(void *data, int type, void *event)
 static int
 _edge_enable_timer_cb(void *data)
 {
-   e_zone_flip_win_restore();
+  e_zone_edge_enable();
+  
+  //e_zone_flip_win_restore();
    return 0;
 }
 
@@ -306,7 +308,9 @@ _eco_cb_mouse_move(void *data, int type, void *event)
 
 	if (end)
 	  {
-	     e_zone_flip_win_disable();
+	    e_zone_edge_disable();
+	    
+	    // e_zone_flip_win_disable();
 	     eco_action_terminate();
 	     eco_action.option = ECO_ACT_OPT_TERMINATE_CANCEL;
 	     _eco_plugin_message_send();
