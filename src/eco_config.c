@@ -1,4 +1,3 @@
-#include <Ecore_Str.h>
 #include "e_mod_main.h"
 
 static void *_create_data(E_Config_Dialog *cfd);
