@@ -31,8 +31,8 @@
 COMPIZ_NAME="ecomorph" # Final name for compiz (compiz.real) 
 GLXINFO="glxinfo"
 # For Xgl LD_PRELOAD
-LIBGL_NVIDIA="/usr/lib/nvidia/libGL.so.1.2.xlibmesa"
-LIBGL_FGLRX="/usr/lib/fglrx/libGL.so.1.2.xlibmesa"
+#LIBGL_NVIDIA="/usr/lib/nvidia/libGL.so.1.2.xlibmesa"
+#LIBGL_FGLRX="/usr/lib/fglrx/libGL.so.1.2.xlibmesa"
 
 # Minimum amount of memory (in kilo bytes) that nVidia cards need
 # to be allowed to start
@@ -221,43 +221,43 @@ check_texture_size()
 }
 
 # check driver whitelist
-running_under_whitelisted_driver()
-{
-	LOG=$(xset q|grep "Log file"|awk '{print $3}')
-	if [ "$LOG" = "" ]; then
-	    verbose "xset q doesn't reveal the location of the log file. Using fallback $XORG_DEFAULT_LOG \n"
-	    LOG=$XORG_DEFAULT_LOG;
-	fi
-	if [ -z "$LOG" ];then
-		verbose "AIEEEEH, no Log file found \n"
-		verbose "$(xset q) \n"
-	return 0
-	fi
-	for DRV in ${WHITELIST}; do
-		if egrep -q "Loading ${XORG_DRIVER_PATH}${DRV}_drv\.so" $LOG &&
-		   ! egrep -q "Unloading ${XORG_DRIVER_PATH}${DRV}_drv\.so" $LOG; 
-		then
-			return 0
-		fi
-	done
-	verbose "No whitelisted driver found\n"
-	return 1
-}
+# running_under_whitelisted_driver()
+# {
+# 	LOG=$(xset q|grep "Log file"|awk '{print $3}')
+# 	if [ "$LOG" = "" ]; then
+# 	    verbose "xset q doesn't reveal the location of the log file. Using fallback $XORG_DEFAULT_LOG \n"
+# 	    LOG=$XORG_DEFAULT_LOG;
+# 	fi
+# 	if [ -z "$LOG" ];then
+# 		verbose "AIEEEEH, no Log file found \n"
+# 		verbose "$(xset q) \n"
+# 	return 0
+# 	fi
+# 	for DRV in ${WHITELIST}; do
+# 		if egrep -q "Loading ${XORG_DRIVER_PATH}${DRV}_drv\.so" $LOG &&
+# 		   ! egrep -q "Unloading ${XORG_DRIVER_PATH}${DRV}_drv\.so" $LOG; 
+# 		then
+# 			return 0
+# 		fi
+# 	done
+# 	verbose "No whitelisted driver found\n"
+# 	return 1
+# }
 
 # check pciid blacklist
-have_blacklisted_pciid()
-{
-	OUTPUT=$(lspci -n)
-	for ID in ${BLACKLIST_PCIIDS}; do
-		if echo "$OUTPUT" | egrep -q "$ID"; then
-			verbose "Blacklisted PCIID '$ID' found \n"
-			return 0
-		fi
-	done
-	OUTPUT=$(lspci -vn | grep -i VGA)
-	verbose "Detected PCI ID for VGA: $OUTPUT\n"
-	return 1
-}
+# have_blacklisted_pciid()
+# {
+# 	OUTPUT=$(lspci -n)
+# 	for ID in ${BLACKLIST_PCIIDS}; do
+# 		if echo "$OUTPUT" | egrep -q "$ID"; then
+# 			verbose "Blacklisted PCIID '$ID' found \n"
+# 			return 0
+# 		fi
+# 	done
+# 	OUTPUT=$(lspci -vn | grep -i VGA)
+# 	verbose "Detected PCI ID for VGA: $OUTPUT\n"
+# 	return 1
+# }
 
 build_env()
 {
@@ -300,9 +300,9 @@ fi
 # if we run under Xgl, we can skip some tests here
 
 # if vesa or vga are in use, do not even try glxinfo (LP#119341)
-if ! running_under_whitelisted_driver || have_blacklisted_pciid; then
-    exit 1;
-fi
+#if ! running_under_whitelisted_driver || have_blacklisted_pciid; then
+#    exit 1;
+#fi
 # check if we have the required bits to run compiz and if not, 
 # fallback
 if ! check_tfp || ! check_npot_texture || ! check_composite || ! check_texture_size; then
