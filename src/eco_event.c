@@ -704,7 +704,7 @@ _eco_border_cb_hook_new_border(void *data, void *border)
   ecore_x_window_free(bd->win);
   e_focus_setdown(bd);
 
-  bd->client.argb = 1;
+  //bd->client.argb = 1;
   
   if (bd->client.argb)
     bd->win = ecore_x_window_manager_argb_new(con->win, 0, 0, bd->w, bd->h);
