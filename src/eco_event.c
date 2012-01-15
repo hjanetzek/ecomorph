@@ -704,7 +704,7 @@ _eco_border_cb_hook_new_border(void *data, void *border)
   ecore_x_window_free(bd->win);
   e_focus_setdown(bd);
 
-  //bd->client.argb = 1;
+  bd->client.argb = 1;
   
   if (bd->client.argb)
     bd->win = ecore_x_window_manager_argb_new(con->win, 0, 0, bd->w, bd->h);
@@ -720,9 +720,7 @@ _eco_border_cb_hook_new_border(void *data, void *border)
   e_bindings_wheel_grab(E_BINDING_CONTEXT_BORDER, bd->win);
   e_focus_setup(bd);
    
-  bd->bg_ecore_evas = e_canvas_new
-    (e_config->evas_engine_borders, bd->win,
-     0, 0, bd->w, bd->h, 1, 0, &(bd->bg_win));
+  bd->bg_ecore_evas = e_canvas_new(bd->win, 0, 0, bd->w, bd->h, 1, 0, &(bd->bg_win));
    
   e_canvas_add(bd->bg_ecore_evas);
   bd->event_win = ecore_x_window_input_new(bd->win, 0, 0, bd->w, bd->h);
