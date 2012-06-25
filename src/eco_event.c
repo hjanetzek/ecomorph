@@ -699,8 +699,8 @@ _eco_border_cb_hook_new_border(void *data, void *border)
   e_canvas_del(bd->bg_ecore_evas);
   ecore_evas_free(bd->bg_ecore_evas);
   ecore_x_window_free(bd->client.shell_win);
-  e_bindings_mouse_ungrab(E_BINDING_CONTEXT_BORDER, bd->win);
-  e_bindings_wheel_ungrab(E_BINDING_CONTEXT_BORDER, bd->win);
+  e_bindings_mouse_ungrab(E_BINDING_CONTEXT_WINDOW, bd->win);
+  e_bindings_wheel_ungrab(E_BINDING_CONTEXT_WINDOW, bd->win);
   ecore_x_window_free(bd->win);
   e_focus_setdown(bd);
 
@@ -716,8 +716,8 @@ _eco_border_cb_hook_new_border(void *data, void *border)
 
   ecore_x_window_prop_card32_set(bd->win, ECOMORPH_ATOM_MANAGED, &(bd->client.win), 1);
    
-  e_bindings_mouse_grab(E_BINDING_CONTEXT_BORDER, bd->win);
-  e_bindings_wheel_grab(E_BINDING_CONTEXT_BORDER, bd->win);
+  e_bindings_mouse_grab(E_BINDING_CONTEXT_WINDOW, bd->win);
+  e_bindings_wheel_grab(E_BINDING_CONTEXT_WINDOW, bd->win);
   e_focus_setup(bd);
    
   bd->bg_ecore_evas = e_canvas_new(bd->win, 0, 0, bd->w, bd->h, 1, 0, &(bd->bg_win));
